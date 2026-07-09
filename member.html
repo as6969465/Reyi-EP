@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
@@ -15,16 +15,11 @@
 .s-nav a:hover,.s-nav button:hover{color:#1d1d1f;background:rgba(0,0,0,.04)}
 .s-cart-count{background:#ff3b30;color:#fff;font-size:.64rem;font-weight:700;border-radius:99px;padding:1px 5px;min-width:16px;text-align:center;display:inline-block}
 .member-layout{display:grid;grid-template-columns:240px 1fr;gap:1.5rem;align-items:start}
-.member-sidebar-tabs{display:flex;flex-direction:column;gap:.25rem}
 @media(max-width:768px){
   .s-header-inner{padding:.65rem 1rem}
   .member-layout{grid-template-columns:1fr}
   .member-sidebar-info{display:flex;align-items:center;gap:1rem;padding:.5rem 0 .75rem;text-align:left}
   .member-sidebar-info #avatar{width:52px;height:52px;font-size:1.25rem;flex-shrink:0;margin:0}
-  .member-sidebar-tabs{flex-direction:row;overflow-x:auto;scrollbar-width:none;gap:.25rem;padding-bottom:.25rem}
-  .member-sidebar-tabs::-webkit-scrollbar{display:none}
-  .member-sidebar-tabs .tab-btn{white-space:nowrap;flex-shrink:0;border-radius:980px;border:1.5px solid var(--border);padding:.4rem .9rem;font-size:.83rem}
-  .member-sidebar-tabs .tab-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 }
 @media(max-width:480px){
   .s-nav a:not([href='cart.html']){display:none}
@@ -57,11 +52,6 @@
           <div id="member-email" style="font-size:.8rem;color:var(--muted)"></div>
         </div>
       </div>
-      <div class="member-sidebar-tabs">
-        <button class="tab-btn active" onclick="showTab('orders',this)">我的訂單</button>
-        <button class="tab-btn" onclick="showTab('profile',this)">個人資料</button>
-        <button class="tab-btn" onclick="showTab('addresses',this)">收件地址</button>
-      </div>
     </div>
 
     <!-- 主內容 -->
@@ -80,66 +70,7 @@
           <div id="order-list"><div class="spinner" style="margin:2rem auto;display:block"></div></div>
         </div>
       </div>
-
-      <!-- 個人資料 -->
-      <div id="tab-profile" style="display:none">
-        <div class="card">
-          <h2 style="font-weight:700;margin-bottom:1rem">個人資料</h2>
-          <div id="profile-alert"></div>
-          <div class="form-group">
-            <label class="form-label">姓名</label>
-            <input id="p-name" type="text" class="form-input">
-          </div>
-          <div class="form-group">
-            <label class="form-label">電子信箱</label>
-            <input id="p-email" type="email" class="form-input" disabled style="background:#f8fafc">
-          </div>
-          <div class="form-group">
-            <label class="form-label">手機號碼</label>
-            <input id="p-phone" type="tel" class="form-input">
-          </div>
-          <button class="btn btn-primary" onclick="saveProfile()">儲存變更</button>
-        </div>
-      </div>
-
-      <!-- 收件地址 -->
-      <div id="tab-addresses" style="display:none">
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-            <h2 style="font-weight:700">收件地址</h2>
-            <button class="btn btn-primary btn-sm" onclick="openAddrModal()">＋ 新增地址</button>
-          </div>
-          <div id="addr-list"></div>
-        </div>
-      </div>
     </div>
-  </div>
-</div>
-
-<!-- 地址 Modal -->
-<div class="modal-overlay" id="addr-modal" style="display:none">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeAddrModal()">✕</button>
-    <h3 class="modal-title">新增收件地址</h3>
-    <div class="form-group">
-      <label class="form-label">地址名稱（如：家、公司）</label>
-      <input id="a-label" type="text" class="form-input" placeholder="家">
-    </div>
-    <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem">
-      <div class="form-group">
-        <label class="form-label">郵遞區號</label>
-        <input id="a-zip" type="text" class="form-input" maxlength="6">
-      </div>
-      <div class="form-group">
-        <label class="form-label">縣市區鄉鎮</label>
-        <input id="a-city" type="text" class="form-input">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">詳細地址</label>
-      <input id="a-detail" type="text" class="form-input">
-    </div>
-    <button class="btn btn-primary btn-full" onclick="saveAddress()">儲存地址</button>
   </div>
 </div>
 
@@ -171,7 +102,6 @@ firebase.initializeApp(firebaseConfig);
 <script>
 let currentUser = null;
 let allOrders = [];
-let userAddresses = [];
 
 const STATUS_LABEL = { pending:'待處理', processing:'備貨中', shipped:'已出貨', completed:'已完成', cancelled:'已取消' };
 const STATUS_BADGE = { pending:'badge-warn', processing:'badge-info', shipped:'badge-info', completed:'badge-success', cancelled:'badge-danger' };
@@ -193,19 +123,8 @@ auth.onAuthStateChanged(async user => {
   document.getElementById('member-name').textContent = data.name || user.displayName || '會員';
   document.getElementById('member-email').textContent = data.email || user.email || '';
   document.getElementById('avatar').textContent = (data.name || user.displayName || '?')[0].toUpperCase();
-  document.getElementById('p-name').value = data.name || '';
-  document.getElementById('p-email').value = data.email || user.email || '';
-  document.getElementById('p-phone').value = data.phone || '';
-  userAddresses = data.addresses || [];
-  renderAddresses();
   loadOrders();
 });
-
-function showTab(tab, btn) {
-  ['orders','profile','addresses'].forEach(t => document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-}
 
 async function loadOrders() {
   try {
@@ -264,43 +183,8 @@ function openOrderModal(id) {
         </div>`).join('')}
     </div>
     <div class="summary-box">
-      <div class="summary-row"><span>小計</span><span>${formatPrice(o.subtotal)}</span></div>
-      <div class="summary-row"><span>運費</span><span>${formatPrice(o.shipping?.fee||0)}</span></div>
       <div class="summary-row total"><span>合計</span><span>${formatPrice(o.total)}</span></div>
     </div>
-    <div style="margin-top:1rem;font-size:.9rem;color:var(--muted);line-height:1.8">
-      <div>收件人：${escapeHtml(o.receiver?.name||'')} / ${escapeHtml(o.receiver?.phone||'')}</div>
-      <div>取貨：${escapeHtml(o.shipping?.method||'')} — ${escapeHtml(o.shipping?.address||'')}</div>
-      <div>付款：${escapeHtml(PAY_LABEL[o.payment?.method]||o.payment?.method||'')}</div>
-      ${o.note ? `<div>備註：${escapeHtml(o.note)}</div>` : ''}
-    </div>
-    ${o.payment?.method === 'transfer' ? `
-    <div style="margin-top:1rem;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;padding:1rem">
-      <div style="font-weight:700;margin-bottom:.5rem;color:#1d4ed8">🏦 匯款帳號資訊</div>
-      ${_bankAccount ? `
-        <div style="font-size:.88rem;line-height:2;color:#1e3a5f">
-          <div>銀行：${escapeHtml(_bankAccount.bankName||'')}</div>
-          <div>戶名：${escapeHtml(_bankAccount.accountName||'')}</div>
-          <div>帳號：<strong style="letter-spacing:.05em">${escapeHtml(_bankAccount.accountNo||'')}</strong></div>
-        </div>
-        <div style="font-size:.78rem;color:#6b7280;margin-top:.5rem">請於 3 日內完成匯款，並保留收據。</div>
-      ` : '<div style="font-size:.85rem;color:var(--muted)">帳號尚未設定，請聯繫賣場。</div>'}
-      <div style="margin-top:.85rem;border-top:1px solid #bfdbfe;padding-top:.85rem">
-        ${o.payment?.transferCode ? `
-          <div style="font-size:.88rem;color:#065f46">✅ 已登錄後五碼：<strong>${escapeHtml(o.payment.transferCode)}</strong>
-            <span style="color:#6b7280;font-weight:400">（${formatDate(o.payment.transferAt)}）</span>
-          </div>` : `
-          <div style="font-size:.85rem;font-weight:600;margin-bottom:.4rem;color:#1e3a5f">匯款後請輸入末五碼</div>
-          <div style="display:flex;gap:.5rem;align-items:center">
-            <input id="transfer-code-input" type="text" inputmode="numeric" maxlength="5"
-              oninput="this.value=this.value.replace(/\\D/g,'').slice(0,5)"
-              placeholder="例：12345" style="width:110px;padding:.4rem .65rem;border:1px solid #bfdbfe;border-radius:8px;font-size:.9rem;outline:none">
-            <button onclick="submitTransferCode('${escapeHtml(o.id)}')"
-              style="padding:.4rem 1rem;background:#1d4ed8;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600">送出</button>
-          </div>
-          <div id="transfer-code-msg" style="font-size:.78rem;margin-top:.35rem"></div>`}
-      </div>
-    </div>` : ''}
     <div style="margin-top:1rem">
       <span class="badge ${STATUS_BADGE[o.status]||'badge-gray'}" style="font-size:.9rem">${STATUS_LABEL[o.status]||escapeHtml(o.status)}</span>
     </div>`;
@@ -308,87 +192,6 @@ function openOrderModal(id) {
 }
 
 function closeOrderModal() { document.getElementById('order-modal').style.display = 'none'; }
-
-async function submitTransferCode(orderId) {
-  const input = document.getElementById('transfer-code-input');
-  const msg   = document.getElementById('transfer-code-msg');
-  const code  = (input?.value || '').trim();
-  if (!/^\d{5}$/.test(code)) {
-    msg.style.color = 'var(--danger)';
-    msg.textContent = '請輸入 5 位數字';
-    return;
-  }
-  try {
-    await db.collection('orders').doc(orderId).update({
-      'payment.transferCode': code,
-      'payment.transferAt':   firebase.firestore.FieldValue.serverTimestamp()
-    });
-    // 更新本地資料並重新渲染
-    const o = allOrders.find(x => x.id === orderId);
-    if (o) {
-      o.payment = { ...(o.payment || {}), transferCode: code, transferAt: { toDate: () => new Date() } };
-    }
-    msg.style.color = '#065f46';
-    msg.textContent = '後五碼已送出 ✓';
-    setTimeout(() => openOrderModal(orderId), 800);
-  } catch(e) {
-    msg.style.color = 'var(--danger)';
-    msg.textContent = '送出失敗：' + e.message;
-  }
-}
-
-async function saveProfile() {
-  const name = document.getElementById('p-name').value.trim();
-  const phone = document.getElementById('p-phone').value.trim();
-  const alertEl = document.getElementById('profile-alert');
-  if (!name) { alertEl.innerHTML = '<div class="alert alert-error">請填寫姓名</div>'; return; }
-  try {
-    await db.collection('users').doc(currentUser.uid).update({ name, phone });
-    await currentUser.updateProfile({ displayName: name });
-    document.getElementById('member-name').textContent = name;
-    alertEl.innerHTML = '<div class="alert alert-success">資料已更新</div>';
-    setTimeout(() => alertEl.innerHTML = '', 3000);
-  } catch(e) {
-    alertEl.innerHTML = `<div class="alert alert-error">更新失敗：${e.message}</div>`;
-  }
-}
-
-function renderAddresses() {
-  const el = document.getElementById('addr-list');
-  if (!userAddresses.length) { el.innerHTML = '<p style="color:var(--muted)">尚未新增地址</p>'; return; }
-  el.innerHTML = userAddresses.map((a, i) => `
-    <div style="border:1.5px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div style="font-weight:600">${escapeHtml(a.label || '地址')}</div>
-        <div style="font-size:.85rem;color:var(--muted)">${escapeHtml(a.zip)} ${escapeHtml(a.city)} ${escapeHtml(a.detail)}</div>
-      </div>
-      <button class="btn btn-sm" onclick="removeAddress(${i})" style="color:var(--danger);background:none;border:none;cursor:pointer">🗑 刪除</button>
-    </div>`).join('');
-}
-
-function openAddrModal() { document.getElementById('addr-modal').style.display = 'flex'; }
-function closeAddrModal() { document.getElementById('addr-modal').style.display = 'none'; }
-
-async function saveAddress() {
-  const addr = {
-    label: document.getElementById('a-label').value.trim() || '地址',
-    zip: document.getElementById('a-zip').value.trim(),
-    city: document.getElementById('a-city').value.trim(),
-    detail: document.getElementById('a-detail').value.trim()
-  };
-  if (!addr.city || !addr.detail) { alert('請填寫完整地址'); return; }
-  userAddresses.push(addr);
-  await db.collection('users').doc(currentUser.uid).update({ addresses: userAddresses });
-  renderAddresses();
-  closeAddrModal();
-}
-
-async function removeAddress(i) {
-  if (!confirm('確定刪除此地址？')) return;
-  userAddresses.splice(i, 1);
-  await db.collection('users').doc(currentUser.uid).update({ addresses: userAddresses });
-  renderAddresses();
-}
 
 function doLogout() {
   auth.signOut().then(() => window.location.href = 'index.html');
