@@ -30,6 +30,7 @@
     .csv-hint { font-size:.78rem; color:var(--muted); margin-top:.4rem; }
   </style>
   <script src="../js/store-name-init.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -42,8 +43,6 @@
     <a href="index.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg> 總覽儀表板</a>
     <a href="products.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5L8 1.5L14 4.5V11.5L8 14.5L2 11.5V4.5Z"/><path d="M2 4.5L8 7.5L14 4.5"/><line x1="8" y1="7.5" x2="8" y2="14.5"/></svg> 商品管理</a>
     <a href="orders.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="1" width="11" height="14" rx="1.5"/><line x1="5" y1="5" x2="11" y2="5"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="5" y1="11" x2="8.5" y2="11"/></svg> 訂單管理</a>
-    <a href="promotions.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5.5" cy="5.5" r="1.5"/><circle cx="10.5" cy="10.5" r="1.5"/><line x1="3" y1="13" x2="13" y2="3"/></svg> 優惠設定</a>
-    <a href="shipping.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 3.5H10.5V11H1.5z"/><path d="M10.5 6H13L15 9V11H10.5z"/><circle cx="4" cy="12.5" r="1.5"/><circle cx="12" cy="12.5" r="1.5"/></svg> 取貨設定</a>
     <a href="employees.html" class="sidebar-link active"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M1.5 14.5c0-3.314 2.91-6 6.5-6s6.5 2.686 6.5 6"/></svg> 人員管理</a>
     <a href="settings.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5V3M8 13V14.5M1.5 8H3M13 8H14.5M3.4 3.4L4.4 4.4M11.6 11.6L12.6 12.6M3.4 12.6L4.4 11.6M11.6 4.4L12.6 3.4"/></svg> 系統設定</a>
   </nav>
@@ -84,10 +83,10 @@
       <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border)">
         <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
           <label class="btn btn-outline" style="cursor:pointer;margin:0">
-            📂 批次匯入 CSV
-            <input type="file" accept=".csv" onchange="importCSV(this)" style="display:none">
+            📂 批次匯入 Excel
+            <input type="file" accept=".xlsx,.xls" onchange="importExcel(this)" style="display:none">
           </label>
-          <span class="csv-hint">CSV 格式：員工編號,姓名,部門（第一列為標題，可省略）</span>
+          <span class="csv-hint">支援「委外人員在離職名冊」Excel 格式，自動讀取員工編號、姓名、課別</span>
         </div>
         <div id="import-progress" style="margin-top:.75rem"></div>
       </div>
@@ -282,34 +281,57 @@ async function toggleEmployee(empId, currentActive) {
   }
 }
 
-async function importCSV(input) {
+async function importExcel(input) {
   const file = input.files[0];
   if (!file) return;
-  const text = await file.text();
-  const lines = text.split(/\r?\n/).filter(l => l.trim());
-  // 偵測標題列
-  let start = 0;
-  if (lines[0] && (lines[0].toLowerCase().includes('員工') || lines[0].toLowerCase().includes('empid') || isNaN(lines[0].split(',')[0]))) start = 1;
-  const rows = lines.slice(start).map(l => l.split(',').map(s => s.trim()));
-  const valid = rows.filter(r => r[0]);
-  if (!valid.length) {
-    document.getElementById('import-progress').innerHTML = '<div class="alert alert-error">找不到有效資料</div>';
-    return;
-  }
   const prog = document.getElementById('import-progress');
-  prog.innerHTML = `<div class="alert alert-info">正在匯入 ${valid.length} 筆資料，請稍候…</div>`;
-  let ok = 0, fail = 0;
-  for (const r of valid) {
-    const [empId, name = '', dept = ''] = r;
-    try {
-      await createEmpAccount(empId, name || empId, dept);
-      ok++;
-      prog.innerHTML = `<div class="alert alert-info">匯入中… ${ok + fail}/${valid.length}</div>`;
-    } catch(e) { fail++; }
+  prog.innerHTML = '<div class="alert alert-info">讀取 Excel 中…</div>';
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+    // 「委外人員在離職名冊」格式：前8列為標題，第9列起為資料
+    // 欄位（0-indexed）: 0=部門, 1=課別, 2=組別, 3=委外廠商, 4=DC別, 5=員工編號, 6=姓名
+    // 自動偵測資料起始列：找員工編號欄不為空且看起來像編號的那列
+    let dataStart = 8; // 預設從第9列（index 8）開始
+    for (let i = 0; i < rows.length; i++) {
+      const empId = String(rows[i][5] || '').trim();
+      if (empId && empId !== '員工編號' && empId.length > 3) {
+        dataStart = i;
+        break;
+      }
+    }
+    const valid = [];
+    for (let i = dataStart; i < rows.length; i++) {
+      const empId = String(rows[i][5] || '').trim();
+      const name  = String(rows[i][6] || '').trim();
+      const dept  = String(rows[i][1] || '').trim();
+      if (empId && name && empId !== '員工編號') {
+        valid.push({ empId, name, dept });
+      }
+    }
+    if (!valid.length) {
+      prog.innerHTML = '<div class="alert alert-error">找不到有效員工資料，請確認檔案格式</div>';
+      input.value = '';
+      return;
+    }
+    prog.innerHTML = `<div class="alert alert-info">正在匯入 ${valid.length} 筆資料，請稍候…</div>`;
+    let ok = 0, fail = 0;
+    for (const { empId, name, dept } of valid) {
+      try {
+        await createEmpAccount(empId, name, dept);
+        ok++;
+        prog.innerHTML = `<div class="alert alert-info">匯入中… ${ok + fail}/${valid.length}（${empId} ${name}）</div>`;
+      } catch(e) { fail++; }
+    }
+    prog.innerHTML = `<div class="alert alert-${fail ? 'warn' : 'success'}">匯入完成：成功 ${ok} 筆${fail ? `，失敗 ${fail} 筆` : ''}</div>`;
+    input.value = '';
+    await loadEmployees();
+  } catch(e) {
+    prog.innerHTML = `<div class="alert alert-error">讀取失敗：${e.message}</div>`;
+    input.value = '';
   }
-  prog.innerHTML = `<div class="alert alert-${fail ? 'warn' : 'success'}">匯入完成：成功 ${ok} 筆${fail ? `，失敗 ${fail} 筆` : ''}</div>`;
-  input.value = '';
-  await loadEmployees();
 }
 
 function doLogout() {
