@@ -63,7 +63,7 @@
     <!-- 新增員工 -->
     <div class="card">
       <h2 style="font-size:1rem;font-weight:700;margin-bottom:1rem">新增員工帳號</h2>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:.75rem;align-items:end">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:.75rem;align-items:end">
         <div>
           <label class="form-label">員工編號 <span style="color:var(--danger)">*</span></label>
           <input id="new-emp-id" type="text" class="form-input" placeholder="例：A12345">
@@ -71,6 +71,10 @@
         <div>
           <label class="form-label">姓名 <span style="color:var(--danger)">*</span></label>
           <input id="new-emp-name" type="text" class="form-input" placeholder="員工姓名">
+        </div>
+        <div>
+          <label class="form-label">廠商</label>
+          <input id="new-emp-vendor" type="text" class="form-input" placeholder="委外廠商（選填）">
         </div>
         <div>
           <label class="form-label">部門</label>
@@ -86,7 +90,7 @@
             📂 批次匯入 Excel
             <input type="file" accept=".xlsx,.xls" onchange="importExcel(this)" style="display:none">
           </label>
-          <span class="csv-hint">支援「委外人員在離職名冊」Excel 格式，自動讀取員工編號、姓名、課別</span>
+          <span class="csv-hint">支援「委外人員在離職名冊」Excel 格式，自動讀取員工編號、姓名、委外廠商、課別</span>
         </div>
         <div id="import-progress" style="margin-top:.75rem"></div>
       </div>
@@ -108,6 +112,7 @@
             <tr>
               <th>員工編號</th>
               <th>姓名</th>
+              <th>廠商</th>
               <th>部門</th>
               <th style="text-align:center">狀態</th>
               <th style="text-align:center">建立時間</th>
@@ -115,7 +120,7 @@
             </tr>
           </thead>
           <tbody id="emp-list">
-            <tr><td colspan="6" style="text-align:center"><div class="spinner" style="margin:.5rem auto;display:block"></div></td></tr>
+            <tr><td colspan="7" style="text-align:center"><div class="spinner" style="margin:.5rem auto;display:block"></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -184,7 +189,8 @@ function filterList() {
   const q = document.getElementById('search-emp').value.trim().toLowerCase();
   const filtered = q ? allEmployees.filter(e =>
     (e.empId || e.id || '').toLowerCase().includes(q) ||
-    (e.name || '').toLowerCase().includes(q)
+    (e.name || '').toLowerCase().includes(q) ||
+    (e.vendor || '').toLowerCase().includes(q)
   ) : allEmployees;
   renderList(filtered);
   document.getElementById('emp-count').textContent = `${filtered.length} / ${allEmployees.length} 人`;
@@ -193,7 +199,7 @@ function filterList() {
 function renderList(list) {
   const tbody = document.getElementById('emp-list');
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted)">尚無員工資料</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted)">尚無員工資料</td></tr>';
     return;
   }
   tbody.innerHTML = list.map(e => {
@@ -202,6 +208,7 @@ function renderList(list) {
     return `<tr>
       <td style="font-weight:600">${escapeHtml(e.empId || e.id)}</td>
       <td>${escapeHtml(e.name || '—')}</td>
+      <td style="color:var(--muted)">${escapeHtml(e.vendor || '—')}</td>
       <td style="color:var(--muted)">${escapeHtml(e.dept || '—')}</td>
       <td style="text-align:center">
         <span class="${active ? 'emp-status-active' : 'emp-status-disabled'}">${active ? '● 啟用' : '● 停用'}</span>
@@ -227,7 +234,7 @@ function showAddAlert(msg, type = 'error') {
   if (type === 'success') setTimeout(() => document.getElementById('add-alert').innerHTML = '', 3000);
 }
 
-async function createEmpAccount(empId, name, dept) {
+async function createEmpAccount(empId, name, vendor, dept) {
   const email = empId + '@reyi-ep.local';
   const password = 'Reyi@' + empId;
   const secAuth = getSecondaryAuth();
@@ -248,6 +255,7 @@ async function createEmpAccount(empId, name, dept) {
   await db.collection('employees').doc(empId).set({
     empId,
     name,
+    vendor: vendor || '',
     dept: dept || '',
     isActive: true,
     uid: uid || '',
@@ -256,18 +264,20 @@ async function createEmpAccount(empId, name, dept) {
 }
 
 async function addEmployee() {
-  const empId = document.getElementById('new-emp-id').value.trim();
-  const name  = document.getElementById('new-emp-name').value.trim();
-  const dept  = document.getElementById('new-emp-dept').value.trim();
+  const empId  = document.getElementById('new-emp-id').value.trim();
+  const name   = document.getElementById('new-emp-name').value.trim();
+  const vendor = document.getElementById('new-emp-vendor').value.trim();
+  const dept   = document.getElementById('new-emp-dept').value.trim();
   if (!empId) return showAddAlert('請輸入員工編號');
   if (!name)  return showAddAlert('請輸入姓名');
   const btn = document.getElementById('btn-add');
   btn.disabled = true; btn.textContent = '建立中…';
   try {
-    await createEmpAccount(empId, name, dept);
+    await createEmpAccount(empId, name, vendor, dept);
     showAddAlert(`員工 ${empId}（${name}）已成功建立`, 'success');
     document.getElementById('new-emp-id').value = '';
     document.getElementById('new-emp-name').value = '';
+    document.getElementById('new-emp-vendor').value = '';
     document.getElementById('new-emp-dept').value = '';
     await loadEmployees();
   } catch(e) {
@@ -318,11 +328,12 @@ async function importExcel(input) {
     }
     const valid = [];
     for (let i = dataStart; i < rows.length; i++) {
-      const empId = String(rows[i][5] || '').trim();
-      const name  = String(rows[i][6] || '').trim();
-      const dept  = String(rows[i][1] || '').trim();
+      const empId  = String(rows[i][5] || '').trim();
+      const name   = String(rows[i][6] || '').trim();
+      const vendor = String(rows[i][3] || '').trim();
+      const dept   = String(rows[i][1] || '').trim();
       if (empId && name && empId !== '員工編號') {
-        valid.push({ empId, name, dept });
+        valid.push({ empId, name, vendor, dept });
       }
     }
     if (!valid.length) {
@@ -337,10 +348,10 @@ async function importExcel(input) {
     for (let i = 0; i < valid.length; i += BATCH_SIZE) {
       const chunk = valid.slice(i, i + BATCH_SIZE);
       const batch = db.batch();
-      for (const { empId, name, dept } of chunk) {
+      for (const { empId, name, vendor, dept } of chunk) {
         try {
           const ref = db.collection('employees').doc(empId);
-          batch.set(ref, { empId, name, dept: dept || '', isActive: true, uid: '', createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+          batch.set(ref, { empId, name, vendor: vendor || '', dept: dept || '', isActive: true, uid: '', createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
           ok++;
         } catch(e) { fail++; }
       }
