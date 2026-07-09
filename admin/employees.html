@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reyi-EP — 人員管理</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { display:flex; min-height:100vh; }
+    .sidebar { width:230px; background:#fff; border-right:1px solid rgba(0,0,0,.07); color:#1d1d1f; flex-shrink:0; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .sidebar-brand { padding:1.4rem 1.25rem 1rem; border-bottom:1px solid rgba(0,0,0,.06); }
+    .sidebar-brand-name { font-size:1.05rem; font-weight:800; color:#1d1d1f; letter-spacing:-.04em; }
+    .sidebar-brand-sub { font-size:.73rem; color:#6e6e73; margin-top:.2rem; }
+    .sidebar-nav { display:flex; flex-direction:column; gap:.1rem; padding:.75rem; flex:1; }
+    .sidebar-link { display:flex; align-items:center; gap:.65rem; padding:.58rem .75rem; border-radius:10px; color:#3a3a3c; font-size:.875rem; font-weight:500; cursor:pointer; border:none; background:none; text-align:left; text-decoration:none; transition:background .15s, color .15s; font-family:inherit; }
+    .sidebar-link:hover { background:rgba(0,0,0,.05); color:#1d1d1f; }
+    .sidebar-link.active { background:rgba(0,102,204,.1); color:#0066cc; font-weight:600; }
+    .sidebar-link svg { flex-shrink:0; opacity:.75; }
+    .sidebar-link.active svg, .sidebar-link:hover svg { opacity:1; }
+    .sidebar-footer { padding:.75rem; border-top:1px solid rgba(0,0,0,.06); }
+    .sidebar-footer .sidebar-link { color:#6e6e73; }
+    .sidebar-footer .sidebar-link:hover { color:#1d1d1f; }
+    .sidebar-footer .sidebar-link.danger:hover { color:#ff3b30; background:rgba(255,59,48,.06); }
+    .main { flex:1; overflow-y:auto; background:var(--bg); min-width:0; }
+    .main-header { background:rgba(255,255,255,.88); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px); border-bottom:1px solid rgba(210,210,215,.6); padding:.85rem 1.5rem; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; }
+    @media(max-width:900px){ .sidebar{display:none;} }
+    .emp-status-active { color:#34c759; font-weight:600; font-size:.82rem; }
+    .emp-status-disabled { color:#ff3b30; font-weight:600; font-size:.82rem; }
+    .csv-hint { font-size:.78rem; color:var(--muted); margin-top:.4rem; }
+  </style>
+  <script src="../js/store-name-init.js"></script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-name"><span class="store-name-el"></span></div>
+    <div class="sidebar-brand-sub">管理後台</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="index.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg> 總覽儀表板</a>
+    <a href="products.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5L8 1.5L14 4.5V11.5L8 14.5L2 11.5V4.5Z"/><path d="M2 4.5L8 7.5L14 4.5"/><line x1="8" y1="7.5" x2="8" y2="14.5"/></svg> 商品管理</a>
+    <a href="orders.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="1" width="11" height="14" rx="1.5"/><line x1="5" y1="5" x2="11" y2="5"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="5" y1="11" x2="8.5" y2="11"/></svg> 訂單管理</a>
+    <a href="promotions.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5.5" cy="5.5" r="1.5"/><circle cx="10.5" cy="10.5" r="1.5"/><line x1="3" y1="13" x2="13" y2="3"/></svg> 優惠設定</a>
+    <a href="shipping.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 3.5H10.5V11H1.5z"/><path d="M10.5 6H13L15 9V11H10.5z"/><circle cx="4" cy="12.5" r="1.5"/><circle cx="12" cy="12.5" r="1.5"/></svg> 取貨設定</a>
+    <a href="employees.html" class="sidebar-link active"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M1.5 14.5c0-3.314 2.91-6 6.5-6s6.5 2.686 6.5 6"/></svg> 人員管理</a>
+    <a href="settings.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5V3M8 13V14.5M1.5 8H3M13 8H14.5M3.4 3.4L4.4 4.4M11.6 11.6L12.6 12.6M3.4 12.6L4.4 11.6M11.6 4.4L12.6 3.4"/></svg> 系統設定</a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="../shop.html" class="sidebar-link" target="_blank"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5L3.5 2h9L14 5.5"/><rect x="1" y="5.5" width="14" height="9" rx="1"/><path d="M6.5 14.5V9.5H9.5V14.5"/></svg> 前往前台</a>
+    <button class="sidebar-link danger" onclick="doLogout()" style="width:100%"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5H3a1 1 0 00-1 1V12.5a1 1 0 001 1H6.5"/><polyline points="10.5,11 14,8 10.5,5"/><line x1="14" y1="8" x2="6" y2="8"/></svg> 登出</button>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="main-header">
+    <h1 style="font-size:1.1rem;font-weight:700">人員管理</h1>
+    <span id="admin-name" style="font-size:.85rem;color:var(--muted)"></span>
+  </div>
+
+  <div style="padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem">
+
+    <!-- 新增員工 -->
+    <div class="card">
+      <h2 style="font-size:1rem;font-weight:700;margin-bottom:1rem">新增員工帳號</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:.75rem;align-items:end">
+        <div>
+          <label class="form-label">員工編號 <span style="color:var(--danger)">*</span></label>
+          <input id="new-emp-id" type="text" class="form-input" placeholder="例：A12345">
+        </div>
+        <div>
+          <label class="form-label">姓名 <span style="color:var(--danger)">*</span></label>
+          <input id="new-emp-name" type="text" class="form-input" placeholder="員工姓名">
+        </div>
+        <div>
+          <label class="form-label">部門</label>
+          <input id="new-emp-dept" type="text" class="form-input" placeholder="部門（選填）">
+        </div>
+        <button class="btn btn-primary" onclick="addEmployee()" id="btn-add" style="white-space:nowrap">新增員工</button>
+      </div>
+      <div id="add-alert" style="margin-top:.75rem"></div>
+
+      <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+          <label class="btn btn-outline" style="cursor:pointer;margin:0">
+            📂 批次匯入 CSV
+            <input type="file" accept=".csv" onchange="importCSV(this)" style="display:none">
+          </label>
+          <span class="csv-hint">CSV 格式：員工編號,姓名,部門（第一列為標題，可省略）</span>
+        </div>
+        <div id="import-progress" style="margin-top:.75rem"></div>
+      </div>
+    </div>
+
+    <!-- 員工列表 -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:1rem;flex-wrap:wrap">
+        <h2 style="font-size:1rem;font-weight:700">員工名單</h2>
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <input id="search-emp" type="text" class="form-input" placeholder="搜尋員工編號或姓名…"
+                 style="width:200px;margin:0" oninput="filterList()">
+          <span id="emp-count" style="font-size:.82rem;color:var(--muted);white-space:nowrap"></span>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="table" style="min-width:560px">
+          <thead>
+            <tr>
+              <th>員工編號</th>
+              <th>姓名</th>
+              <th>部門</th>
+              <th style="text-align:center">狀態</th>
+              <th style="text-align:center">建立時間</th>
+              <th style="text-align:center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="emp-list">
+            <tr><td colspan="6" style="text-align:center"><div class="spinner" style="margin:.5rem auto;display:block"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyByVQewloZcL4cMrPKxyZ5JlhaGS4Zep08",
+  authDomain: "reyi-ep.firebaseapp.com",
+  projectId: "reyi-ep",
+  storageBucket: "reyi-ep.firebasestorage.app",
+  messagingSenderId: "90799325656",
+  appId: "1:90799325656:web:df2ce64d86ef9c9060b2ad"
+};
+firebase.initializeApp(firebaseConfig);
+</script>
+<script src="../js/app-helpers.js"></script>
+<script>
+let secondaryApp = null;
+function getSecondaryAuth() {
+  if (!secondaryApp) {
+    const cfg = {
+      apiKey: "AIzaSyByVQewloZcL4cMrPKxyZ5JlhaGS4Zep08",
+      authDomain: "reyi-ep.firebaseapp.com",
+      projectId: "reyi-ep",
+      storageBucket: "reyi-ep.firebasestorage.app",
+      messagingSenderId: "90799325656",
+      appId: "1:90799325656:web:df2ce64d86ef9c9060b2ad"
+    };
+    secondaryApp = firebase.initializeApp(cfg, 'secondary');
+  }
+  return secondaryApp.auth();
+}
+
+let allEmployees = [];
+
+auth.onAuthStateChanged(async user => {
+  if (!user) return window.location.href = '../admin-login.html';
+  const adminDoc = await db.collection('admins').doc(user.uid).get();
+  if (!adminDoc.exists) return window.location.href = '../shop.html';
+  applyStoreName(' — 管理後台');
+  document.getElementById('admin-name').textContent = user.displayName || user.email;
+  loadEmployees();
+});
+
+async function loadEmployees() {
+  try {
+    const snap = await db.collection('employees').orderBy('createdAt', 'desc').get();
+    allEmployees = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderList(allEmployees);
+    document.getElementById('emp-count').textContent = `共 ${allEmployees.length} 人`;
+  } catch(e) {
+    document.getElementById('emp-list').innerHTML =
+      `<tr><td colspan="6" style="text-align:center;color:var(--danger)">載入失敗：${escapeHtml(e.message)}</td></tr>`;
+  }
+}
+
+function filterList() {
+  const q = document.getElementById('search-emp').value.trim().toLowerCase();
+  const filtered = q ? allEmployees.filter(e =>
+    (e.empId || e.id || '').toLowerCase().includes(q) ||
+    (e.name || '').toLowerCase().includes(q)
+  ) : allEmployees;
+  renderList(filtered);
+  document.getElementById('emp-count').textContent = `${filtered.length} / ${allEmployees.length} 人`;
+}
+
+function renderList(list) {
+  const tbody = document.getElementById('emp-list');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted)">尚無員工資料</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(e => {
+    const active = e.isActive !== false;
+    const dateStr = e.createdAt ? formatDate(e.createdAt) : '—';
+    return `<tr>
+      <td style="font-weight:600">${escapeHtml(e.empId || e.id)}</td>
+      <td>${escapeHtml(e.name || '—')}</td>
+      <td style="color:var(--muted)">${escapeHtml(e.dept || '—')}</td>
+      <td style="text-align:center">
+        <span class="${active ? 'emp-status-active' : 'emp-status-disabled'}">${active ? '● 啟用' : '● 停用'}</span>
+      </td>
+      <td style="text-align:center;font-size:.8rem;color:var(--muted);white-space:nowrap">${dateStr}</td>
+      <td style="text-align:center">
+        <button class="btn btn-outline" style="padding:.3rem .7rem;font-size:.8rem"
+                onclick="toggleEmployee('${escapeHtml(e.empId || e.id)}', ${active})">
+          ${active ? '停用' : '啟用'}
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function showAddAlert(msg, type = 'error') {
+  document.getElementById('add-alert').innerHTML =
+    `<div class="alert alert-${type === 'success' ? 'success' : 'error'}">${msg}</div>`;
+  if (type === 'success') setTimeout(() => document.getElementById('add-alert').innerHTML = '', 3000);
+}
+
+async function createEmpAccount(empId, name, dept) {
+  const email = empId + '@reyi-ep.local';
+  const password = 'Reyi@' + empId;
+  const secAuth = getSecondaryAuth();
+  let uid = null;
+  try {
+    const cred = await secAuth.createUserWithEmailAndPassword(email, password);
+    uid = cred.user.uid;
+    await cred.user.updateProfile({ displayName: name });
+    await secAuth.signOut();
+  } catch(e) {
+    await secAuth.signOut().catch(() => {});
+    if (e.code === 'auth/email-already-in-use') {
+      // 帳號已存在，只更新 Firestore
+    } else {
+      throw e;
+    }
+  }
+  await db.collection('employees').doc(empId).set({
+    empId,
+    name,
+    dept: dept || '',
+    isActive: true,
+    uid: uid || '',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+}
+
+async function addEmployee() {
+  const empId = document.getElementById('new-emp-id').value.trim();
+  const name  = document.getElementById('new-emp-name').value.trim();
+  const dept  = document.getElementById('new-emp-dept').value.trim();
+  if (!empId) return showAddAlert('請輸入員工編號');
+  if (!name)  return showAddAlert('請輸入姓名');
+  const btn = document.getElementById('btn-add');
+  btn.disabled = true; btn.textContent = '建立中…';
+  try {
+    await createEmpAccount(empId, name, dept);
+    showAddAlert(`員工 ${empId}（${name}）已成功建立`, 'success');
+    document.getElementById('new-emp-id').value = '';
+    document.getElementById('new-emp-name').value = '';
+    document.getElementById('new-emp-dept').value = '';
+    await loadEmployees();
+  } catch(e) {
+    showAddAlert('建立失敗：' + e.message);
+  }
+  btn.disabled = false; btn.textContent = '新增員工';
+}
+
+async function toggleEmployee(empId, currentActive) {
+  try {
+    await db.collection('employees').doc(empId).update({ isActive: !currentActive });
+    await loadEmployees();
+  } catch(e) {
+    alert('操作失敗：' + e.message);
+  }
+}
+
+async function importCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const text = await file.text();
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  // 偵測標題列
+  let start = 0;
+  if (lines[0] && (lines[0].toLowerCase().includes('員工') || lines[0].toLowerCase().includes('empid') || isNaN(lines[0].split(',')[0]))) start = 1;
+  const rows = lines.slice(start).map(l => l.split(',').map(s => s.trim()));
+  const valid = rows.filter(r => r[0]);
+  if (!valid.length) {
+    document.getElementById('import-progress').innerHTML = '<div class="alert alert-error">找不到有效資料</div>';
+    return;
+  }
+  const prog = document.getElementById('import-progress');
+  prog.innerHTML = `<div class="alert alert-info">正在匯入 ${valid.length} 筆資料，請稍候…</div>`;
+  let ok = 0, fail = 0;
+  for (const r of valid) {
+    const [empId, name = '', dept = ''] = r;
+    try {
+      await createEmpAccount(empId, name || empId, dept);
+      ok++;
+      prog.innerHTML = `<div class="alert alert-info">匯入中… ${ok + fail}/${valid.length}</div>`;
+    } catch(e) { fail++; }
+  }
+  prog.innerHTML = `<div class="alert alert-${fail ? 'warn' : 'success'}">匯入完成：成功 ${ok} 筆${fail ? `，失敗 ${fail} 筆` : ''}</div>`;
+  input.value = '';
+  await loadEmployees();
+}
+
+function doLogout() {
+  auth.signOut().then(() => window.location.href = '../admin-login.html');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reyi-EP — 管理員登入</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="js/store-name-init.js"></script>
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-box">
+    <div style="margin-bottom:1.25rem">
+      <a href="index.html" style="font-size:.82rem;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:.35rem"
+         onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='var(--muted)'">
+        ← 返回員工登入
+      </a>
+    </div>
+    <div class="auth-logo">
+      <h1>⚙️ <span class="store-name-el"></span></h1>
+      <p>管理員後台登入</p>
+    </div>
+
+    <div id="alert-box"></div>
+
+    <div class="form-group">
+      <label class="form-label">管理員信箱</label>
+      <input id="admin-email" type="email" class="form-input" placeholder="admin@example.com"
+             onkeydown="if(event.key==='Enter')document.getElementById('admin-password').focus()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">密碼</label>
+      <input id="admin-password" type="password" class="form-input" placeholder="請輸入密碼"
+             onkeydown="if(event.key==='Enter')doAdminLogin()">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doAdminLogin()" id="btn-login">登入後台</button>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyByVQewloZcL4cMrPKxyZ5JlhaGS4Zep08",
+  authDomain: "reyi-ep.firebaseapp.com",
+  projectId: "reyi-ep",
+  storageBucket: "reyi-ep.firebasestorage.app",
+  messagingSenderId: "90799325656",
+  appId: "1:90799325656:web:df2ce64d86ef9c9060b2ad"
+};
+firebase.initializeApp(firebaseConfig);
+</script>
+<script src="js/app-helpers.js"></script>
+<script>
+applyStoreName('');
+
+auth.onAuthStateChanged(async user => {
+  if (!user) return;
+  const adminDoc = await db.collection('admins').doc(user.uid).get().catch(() => null);
+  if (adminDoc && adminDoc.exists) window.location.href = 'admin/index.html';
+});
+
+function showAlert(msg, type = 'error') {
+  document.getElementById('alert-box').innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+}
+
+async function doAdminLogin() {
+  const email = document.getElementById('admin-email').value.trim();
+  const password = document.getElementById('admin-password').value;
+  if (!email || !password) return showAlert('請填寫信箱和密碼');
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; btn.textContent = '驗證中...';
+  try {
+    const result = await auth.signInWithEmailAndPassword(email, password);
+    const adminDoc = await db.collection('admins').doc(result.user.uid).get();
+    if (!adminDoc.exists) {
+      await auth.signOut();
+      showAlert('此帳號無管理員權限');
+      btn.disabled = false; btn.textContent = '登入後台';
+      return;
+    }
+    window.location.href = 'admin/index.html';
+  } catch (e) {
+    const map = {
+      'auth/user-not-found': '帳號不存在',
+      'auth/wrong-password': '密碼錯誤',
+      'auth/invalid-credential': '帳號或密碼錯誤',
+      'auth/too-many-requests': '嘗試次數過多，請稍後再試',
+      'auth/network-request-failed': '網路連線失敗',
+    };
+    showAlert(map[e.code] || '登入失敗，請稍後再試');
+    btn.disabled = false; btn.textContent = '登入後台';
+  }
+}
+</script>
+</body>
+</html>
