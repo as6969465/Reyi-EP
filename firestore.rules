@@ -22,6 +22,7 @@ service cloud.firestore {
     match /orders/{id} {
       allow create: if isSignedIn();
       allow read, update: if isOwner(resource.data.userId) || isAdmin();
+      allow delete: if isAdmin();
     }
 
     // 會員資料：本人可讀寫
