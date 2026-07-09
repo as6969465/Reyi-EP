@@ -22,4 +22,5 @@ jobs:
       - name: Deploy Firestore Rules
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_REYI_EP }}' > /tmp/sa.json
-          npx firebase-tools@latest deploy --only firestore:rules --project reyi-ep --service-account /tmp/sa.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
+          npx firebase-tools@latest deploy --only firestore:rules --project reyi-ep
