@@ -207,10 +207,14 @@ function renderList(list) {
         <span class="${active ? 'emp-status-active' : 'emp-status-disabled'}">${active ? '● 啟用' : '● 停用'}</span>
       </td>
       <td style="text-align:center;font-size:.8rem;color:var(--muted);white-space:nowrap">${dateStr}</td>
-      <td style="text-align:center">
+      <td style="text-align:center;white-space:nowrap;display:flex;gap:.4rem;justify-content:center">
         <button class="btn btn-outline" style="padding:.3rem .7rem;font-size:.8rem"
                 onclick="toggleEmployee('${escapeHtml(e.empId || e.id)}', ${active})">
           ${active ? '停用' : '啟用'}
+        </button>
+        <button class="btn btn-outline" style="padding:.3rem .7rem;font-size:.8rem;color:var(--danger);border-color:var(--danger)"
+                onclick="deleteEmployee('${escapeHtml(e.empId || e.id)}', '${escapeHtml(e.name || '')}')">
+          刪除
         </button>
       </td>
     </tr>`;
@@ -270,6 +274,16 @@ async function addEmployee() {
     showAddAlert('建立失敗：' + e.message);
   }
   btn.disabled = false; btn.textContent = '新增員工';
+}
+
+async function deleteEmployee(empId, name) {
+  if (!confirm(`確定要刪除員工「${name}（${empId}）」？此動作無法復原。`)) return;
+  try {
+    await db.collection('employees').doc(empId).delete();
+    await loadEmployees();
+  } catch(e) {
+    alert('刪除失敗：' + e.message);
+  }
 }
 
 async function toggleEmployee(empId, currentActive) {
