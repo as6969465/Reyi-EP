@@ -117,16 +117,17 @@ async function loadEmpInfo() {
   const empId = currentUser.email.replace('@reyi-ep.local', '');
   try {
     const doc = await db.collection('employees').doc(empId).get();
-    empInfo = { empId, name: empId, dept: '' };
+    empInfo = { empId, name: empId, vendor: '', dept: '' };
     if (doc.exists) {
       const d = doc.data();
-      empInfo.name = d.name || empId;
-      empInfo.dept = d.dept || '';
+      empInfo.name   = d.name   || empId;
+      empInfo.vendor = d.vendor || '';
+      empInfo.dept   = d.dept   || '';
     }
   } catch(e) {
-    empInfo = { empId, name: currentUser.displayName || empId, dept: '' };
+    empInfo = { empId, name: currentUser.displayName || empId, vendor: '', dept: '' };
   }
-  document.getElementById('info-dept').textContent = empInfo.dept || '—';
+  document.getElementById('info-dept').textContent = empInfo.vendor || '—';
   document.getElementById('info-name').textContent = empInfo.name;
   document.getElementById('info-empid').textContent = empInfo.empId;
   document.getElementById('emp-loading').style.display = 'none';
@@ -167,6 +168,7 @@ async function submitOrder() {
       userId: currentUser.uid,
       empId: empInfo.empId,
       empName: empInfo.name,
+      empVendor: empInfo.vendor,
       empDept: empInfo.dept,
       items: cart.map(i => ({
         id: i.id,

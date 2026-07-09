@@ -139,7 +139,7 @@ async function loadOrder() {
 
 function renderOrder(o) {
   // 員工資訊
-  document.getElementById('o-dept').textContent  = o.empDept || '—';
+  document.getElementById('o-dept').textContent  = o.empVendor || o.empDept || '—';
   document.getElementById('o-name').textContent  = o.empName || '—';
   document.getElementById('o-empid').textContent = o.empId   || '—';
   const ts = o.createdAt ? o.createdAt.toDate() : null;
