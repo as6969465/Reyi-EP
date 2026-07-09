@@ -72,7 +72,7 @@
     <p style="color:var(--muted);font-size:.85rem;margin-bottom:1.75rem">請出示下方 QR 碼讓管理員掃描確認付款</p>
     <div style="display:flex;justify-content:center;margin-bottom:1.75rem">
       <div class="qr-wrap">
-        <canvas id="qr-canvas"></canvas>
+        <img id="qr-img" style="width:220px;height:220px;display:block">
         <p style="margin-top:.75rem;font-size:.75rem;color:var(--muted);letter-spacing:.05em" id="qr-order-short"></p>
       </div>
     </div>
@@ -207,11 +207,9 @@ function showDone(orderId) {
   document.getElementById('order-id-display').textContent = orderId.slice(0, 8).toUpperCase();
   document.getElementById('qr-order-short').textContent = 'ORDER ' + orderId.slice(0, 8).toUpperCase();
   const qrUrl = window.location.origin + '/admin/order-detail.html?id=' + orderId;
-  QRCode.toCanvas(document.getElementById('qr-canvas'), qrUrl, {
-    width: 220,
-    margin: 1,
-    color: { dark: '#1d1d1f', light: '#ffffff' }
-  });
+  QRCode.toDataURL(qrUrl, { width: 220, margin: 1, color: { dark: '#1d1d1f', light: '#ffffff' } })
+    .then(url => { document.getElementById('qr-img').src = url; })
+    .catch(e => { document.getElementById('qr-img').alt = 'QR 碼產生失敗：' + e.message; });
 }
 </script>
 </body>
