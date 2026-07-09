@@ -1,4 +1,4 @@
-name: Deploy to Firebase Hosting
+name: Deploy to Firebase
 
 on:
   push:
@@ -18,3 +18,8 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_REYI_EP }}
           channelId: live
           projectId: reyi-ep
+
+      - name: Deploy Firestore Rules
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_REYI_EP }}' > /tmp/sa.json
+          npx firebase-tools@latest deploy --only firestore:rules --project reyi-ep --service-account /tmp/sa.json
