@@ -124,15 +124,25 @@
         <input id="p-stock" type="number" class="form-input" min="0">
       </div>
 
-      <!-- 商品圖片（網址）-->
+      <!-- 商品圖片 -->
       <div class="form-group" style="grid-column:1/-1">
         <label class="form-label">商品圖片</label>
         <div id="images-preview-area" style="display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:.75rem"></div>
+        <!-- 上傳檔案 -->
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
+          <label class="btn btn-outline btn-sm" style="cursor:pointer;margin:0;white-space:nowrap">
+            📁 上傳圖片
+            <input id="p-img-file" type="file" accept="image/png,image/jpeg" multiple style="display:none"
+              onchange="handleFileUpload(this)">
+          </label>
+          <span id="upload-status" style="font-size:.78rem;color:var(--muted)"></span>
+        </div>
+        <!-- 或貼網址 -->
         <div style="display:flex;align-items:center;gap:.5rem">
-          <input id="p-img-url" type="text" class="form-input" placeholder="貼上圖片網址 https://...">
+          <input id="p-img-url" type="text" class="form-input" placeholder="或貼上圖片網址 https://...">
           <button type="button" class="btn btn-outline btn-sm" onclick="addImageFromUrl()" style="white-space:nowrap">加入</button>
         </div>
-        <p style="font-size:.76rem;color:var(--muted);margin-top:.4rem">將圖片上傳至 Google 相簿、Imgur 等免費圖床後，貼上圖片網址即可。</p>
+        <p style="font-size:.76rem;color:var(--muted);margin-top:.4rem">支援 PNG / JPG，上傳後自動壓縮。</p>
       </div>
 
       <!-- 商品說明 -->
@@ -309,6 +319,51 @@ function addImageFromUrl() {
   }
   productImages.push(url);
   renderImagesPreview();
+  input.value = '';
+}
+
+function compressImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const MAX = 800;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else        { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleFileUpload(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const statusEl = document.getElementById('upload-status');
+  statusEl.textContent = `壓縮中 0/${files.length}…`;
+  for (let i = 0; i < files.length; i++) {
+    try {
+      const b64 = await compressImageFile(files[i]);
+      productImages.push(b64);
+      renderImagesPreview();
+      statusEl.textContent = `壓縮中 ${i + 1}/${files.length}…`;
+    } catch(e) {
+      statusEl.textContent = `第 ${i+1} 張失敗：${e.message}`;
+    }
+  }
+  statusEl.textContent = `已加入 ${files.length} 張`;
+  setTimeout(() => { statusEl.textContent = ''; }, 2500);
   input.value = '';
 }
 
