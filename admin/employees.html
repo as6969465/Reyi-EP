@@ -331,15 +331,23 @@ async function importExcel(input) {
       return;
     }
     prog.innerHTML = `<div class="alert alert-info">正在匯入 ${valid.length} 筆資料，請稍候…</div>`;
+    // 用 Firestore batch 批次寫入，不建立 Auth 帳號（員工首次登入時自動建立）
+    const BATCH_SIZE = 500;
     let ok = 0, fail = 0;
-    for (const { empId, name, dept } of valid) {
-      try {
-        await createEmpAccount(empId, name, dept);
-        ok++;
-        prog.innerHTML = `<div class="alert alert-info">匯入中… ${ok + fail}/${valid.length}（${empId} ${name}）</div>`;
-      } catch(e) { fail++; }
+    for (let i = 0; i < valid.length; i += BATCH_SIZE) {
+      const chunk = valid.slice(i, i + BATCH_SIZE);
+      const batch = db.batch();
+      for (const { empId, name, dept } of chunk) {
+        try {
+          const ref = db.collection('employees').doc(empId);
+          batch.set(ref, { empId, name, dept: dept || '', isActive: true, uid: '', createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+          ok++;
+        } catch(e) { fail++; }
+      }
+      await batch.commit();
+      prog.innerHTML = `<div class="alert alert-info">匯入中… ${Math.min(i + BATCH_SIZE, valid.length)}/${valid.length}</div>`;
     }
-    prog.innerHTML = `<div class="alert alert-${fail ? 'warn' : 'success'}">匯入完成：成功 ${ok} 筆${fail ? `，失敗 ${fail} 筆` : ''}</div>`;
+    prog.innerHTML = `<div class="alert alert-${fail ? 'warn' : 'success'}">匯入完成：成功 ${ok} 筆${fail ? `，失敗 ${fail} 筆` : ''}（員工首次登入時將自動建立帳號）</div>`;
     input.value = '';
     await loadEmployees();
   } catch(e) {

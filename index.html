@@ -87,14 +87,30 @@ async function doLogin() {
   try {
     const email = empId + '@reyi-ep.local';
     const password = 'Reyi@' + empId;
-    const result = await auth.signInWithEmailAndPassword(email, password);
-    // 檢查帳號是否啟用
+    // 先確認員工在名冊內且啟用
     const empDoc = await db.collection('employees').doc(empId).get();
-    if (empDoc.exists && empDoc.data().isActive === false) {
-      await auth.signOut();
+    if (!empDoc.exists) {
+      showAlert('員工編號不存在，請聯絡管理員');
+      btn.disabled = false; btn.textContent = '登入';
+      return;
+    }
+    if (empDoc.data().isActive === false) {
       showAlert('您的帳號已停用，請聯絡管理員');
       btn.disabled = false; btn.textContent = '登入';
       return;
+    }
+    // 嘗試登入；若帳號尚未建立則自動建立
+    let result;
+    try {
+      result = await auth.signInWithEmailAndPassword(email, password);
+    } catch (e) {
+      if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
+        result = await auth.createUserWithEmailAndPassword(email, password);
+        await result.user.updateProfile({ displayName: empDoc.data().name || empId });
+        await db.collection('employees').doc(empId).update({ uid: result.user.uid });
+      } else {
+        throw e;
+      }
     }
     // 記錄登入
     try {
@@ -104,9 +120,7 @@ async function doLogin() {
       }, { merge: true });
     } catch(e) {}
   } catch (e) {
-    const msg = e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'
-      ? '員工編號不存在或帳號尚未建立，請聯絡管理員'
-      : (e.code === 'auth/too-many-requests' ? '嘗試次數過多，請稍後再試' : '登入失敗，請稍後再試');
+    const msg = e.code === 'auth/too-many-requests' ? '嘗試次數過多，請稍後再試' : '登入失敗，請稍後再試';
     showAlert(msg);
     btn.disabled = false; btn.textContent = '登入';
   }
