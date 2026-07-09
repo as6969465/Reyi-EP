@@ -1,0 +1,251 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reyi-EP — 後台管理</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { display:flex; min-height:100vh; }
+    .sidebar { width:230px; background:#fff; border-right:1px solid rgba(0,0,0,.07); color:#1d1d1f; flex-shrink:0; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .sidebar-brand { padding:1.4rem 1.25rem 1rem; border-bottom:1px solid rgba(0,0,0,.06); }
+    .sidebar-brand-name { font-size:1.05rem; font-weight:800; color:#1d1d1f; letter-spacing:-.04em; }
+    .sidebar-brand-sub { font-size:.73rem; color:#6e6e73; margin-top:.2rem; }
+    .sidebar-nav { display:flex; flex-direction:column; gap:.1rem; padding:.75rem; flex:1; }
+    .sidebar-link { display:flex; align-items:center; gap:.65rem; padding:.58rem .75rem; border-radius:10px; color:#3a3a3c; font-size:.875rem; font-weight:500; cursor:pointer; border:none; background:none; text-align:left; text-decoration:none; transition:background .15s, color .15s; font-family:inherit; }
+    .sidebar-link:hover { background:rgba(0,0,0,.05); color:#1d1d1f; }
+    .sidebar-link.active { background:rgba(0,102,204,.1); color:#0066cc; font-weight:600; }
+    .sidebar-link svg { flex-shrink:0; opacity:.75; }
+    .sidebar-link.active svg, .sidebar-link:hover svg { opacity:1; }
+    .sidebar-footer { padding:.75rem; border-top:1px solid rgba(0,0,0,.06); }
+    .sidebar-footer .sidebar-link { color:#6e6e73; }
+    .sidebar-footer .sidebar-link:hover { color:#1d1d1f; }
+    .sidebar-footer .sidebar-link.danger:hover { color:#ff3b30; background:rgba(255,59,48,.06); }
+    .main { flex:1; overflow-y:auto; background:var(--bg); min-width:0; }
+    .main-header { background:rgba(255,255,255,.88); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px); border-bottom:1px solid rgba(210,210,215,.6); padding:.85rem 1.5rem; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; }
+    .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+    .stat-card { background:#fff; border-radius:var(--radius); padding:1.25rem; box-shadow:var(--shadow); }
+    .stat-label { font-size:.8rem; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+    .stat-value { font-size:1.75rem; font-weight:800; margin:.4rem 0; }
+    .stat-sub { font-size:.8rem; color:var(--muted); }
+    @media(max-width:900px){ .stat-grid{grid-template-columns:repeat(2,1fr);} .sidebar{display:none;} }
+  </style>
+  <script src="../js/store-name-init.js"></script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-name"><span class="store-name-el"></span></div>
+    <div class="sidebar-brand-sub">管理後台</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="index.html" class="sidebar-link active"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg> 總覽儀表板</a>
+    <a href="products.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5L8 1.5L14 4.5V11.5L8 14.5L2 11.5V4.5Z"/><path d="M2 4.5L8 7.5L14 4.5"/><line x1="8" y1="7.5" x2="8" y2="14.5"/></svg> 商品管理</a>
+    <a href="orders.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="1" width="11" height="14" rx="1.5"/><line x1="5" y1="5" x2="11" y2="5"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="5" y1="11" x2="8.5" y2="11"/></svg> 訂單管理</a>
+    <a href="promotions.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5.5" cy="5.5" r="1.5"/><circle cx="10.5" cy="10.5" r="1.5"/><line x1="3" y1="13" x2="13" y2="3"/></svg> 優惠設定</a>
+    <a href="shipping.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 3.5H10.5V11H1.5z"/><path d="M10.5 6H13L15 9V11H10.5z"/><circle cx="4" cy="12.5" r="1.5"/><circle cx="12" cy="12.5" r="1.5"/></svg> 取貨設定</a>
+    <a href="settings.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5V3M8 13V14.5M1.5 8H3M13 8H14.5M3.4 3.4L4.4 4.4M11.6 11.6L12.6 12.6M3.4 12.6L4.4 11.6M11.6 4.4L12.6 3.4"/></svg> 系統設定</a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="../shop.html" class="sidebar-link" target="_blank"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5L3.5 2h9L14 5.5"/><rect x="1" y="5.5" width="14" height="9" rx="1"/><path d="M6.5 14.5V9.5H9.5V14.5"/></svg> 前往前台</a>
+    <button class="sidebar-link danger" onclick="doLogout()" style="width:100%"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5H3a1 1 0 00-1 1V12.5a1 1 0 001 1H6.5"/><polyline points="10.5,11 14,8 10.5,5"/><line x1="14" y1="8" x2="6" y2="8"/></svg> 登出</button>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="main-header">
+    <h1 style="font-size:1.1rem;font-weight:700">總覽儀表板</h1>
+    <span id="admin-name" style="font-size:.85rem;color:var(--muted)"></span>
+  </div>
+  <div style="padding:1.5rem">
+    <!-- 統計卡 -->
+    <div class="stat-grid" style="margin-bottom:1.5rem">
+      <div class="stat-card">
+        <div class="stat-label">今日訂單</div>
+        <div class="stat-value" id="stat-today">—</div>
+        <div class="stat-sub">筆新訂單</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">本月營收</div>
+        <div class="stat-value" id="stat-revenue">—</div>
+        <div class="stat-sub">已完成訂單</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">待處理訂單</div>
+        <div class="stat-value" id="stat-pending" style="color:var(--secondary)">—</div>
+        <div class="stat-sub">需要處理</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">上架商品</div>
+        <div class="stat-value" id="stat-products">—</div>
+        <div class="stat-sub">件商品在售</div>
+      </div>
+    </div>
+
+    <!-- 會員登入記錄 -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <h3 style="font-weight:700">會員登入記錄</h3>
+        <span id="member-count" style="font-size:.8rem;color:var(--muted)"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>姓名</th><th>電子信箱</th><th>登入次數</th><th>最後登入</th><th>註冊時間</th></tr></thead>
+          <tbody id="member-list"><tr><td colspan="5" style="text-align:center"><div class="spinner"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 380px;gap:1.5rem">
+      <!-- 最新訂單 -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <h3 style="font-weight:700">最新訂單</h3>
+          <a href="orders.html" class="btn btn-outline btn-sm">查看全部</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>訂單編號</th><th>金額</th><th>狀態</th><th>時間</th></tr></thead>
+            <tbody id="recent-orders"><tr><td colspan="4" style="text-align:center"><div class="spinner"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- 庫存警示 -->
+      <div class="card">
+        <h3 style="font-weight:700;margin-bottom:1rem">⚠️ 低庫存警示</h3>
+        <div id="low-stock-list"><div class="spinner" style="display:block;margin:auto"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 手機底部導覽 -->
+<nav class="admin-bottom-nav">
+  <div class="admin-bottom-nav-inner">
+    <a href="index.html" class="admin-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>總覽</span></a>
+    <a href="products.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l8-4 8 4v10l-8 4-8-4V7z"/><path d="M4 7l8 4 8-4"/><line x1="12" y1="11" x2="12" y2="21"/></svg><span>商品</span></a>
+    <a href="orders.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="12" y2="15"/></svg><span>訂單</span></a>
+    <a href="promotions.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="2"/><circle cx="15" cy="15" r="2"/><line x1="5" y1="19" x2="19" y2="5"/></svg><span>優惠</span></a>
+    <a href="shipping.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="13" height="12" rx="1"/><path d="M14 9h4l3 4v4h-7V9z"/><circle cx="6" cy="20" r="2"/><circle cx="18" cy="20" r="2"/></svg><span>配送</span></a>
+    <a href="settings.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><span>設定</span></a>
+  </div>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyByVQewloZcL4cMrPKxyZ5JlhaGS4Zep08",
+  authDomain: "reyi-ep.firebaseapp.com",
+  projectId: "reyi-ep",
+  storageBucket: "reyi-ep.firebasestorage.app",
+  messagingSenderId: "90799325656",
+  appId: "1:90799325656:web:df2ce64d86ef9c9060b2ad"
+};
+firebase.initializeApp(firebaseConfig);
+</script>
+  <script src="../js/app-helpers.js"></script>
+<script>
+const STATUS_BADGE = { pending:'badge-warn', processing:'badge-info', shipped:'badge-info', completed:'badge-success', cancelled:'badge-danger' };
+const STATUS_LABEL = { pending:'待處理', processing:'備貨中', shipped:'已出貨', completed:'已完成', cancelled:'已取消' };
+
+auth.onAuthStateChanged(async user => {
+  if (!user) return window.location.href = '../index.html';
+  const adminDoc = await db.collection('admins').doc(user.uid).get();
+  if (!adminDoc.exists) return window.location.href = '../shop.html';
+  applyStoreName(' — 管理後台');
+  document.getElementById('admin-name').textContent = user.displayName || user.email;
+  loadDashboard();
+  loadMembers();
+});
+
+async function loadMembers() {
+  try {
+    const snap = await db.collection('users').orderBy('lastLoginAt', 'desc').get();
+    const tbody = document.getElementById('member-list');
+    document.getElementById('member-count').textContent = `共 ${snap.size} 位會員`;
+    if (snap.empty) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted)">尚無會員</td></tr>';
+      return;
+    }
+    tbody.innerHTML = snap.docs.map(d => {
+      const u = d.data();
+      return `<tr>
+        <td>${escapeHtml(u.name || '—')}</td>
+        <td style="font-size:.85rem">${escapeHtml(u.email || '—')}</td>
+        <td style="text-align:center"><span class="badge badge-info">${u.loginCount || 0} 次</span></td>
+        <td style="font-size:.8rem;color:var(--muted);white-space:nowrap">${u.lastLoginAt ? formatDate(u.lastLoginAt) : '—'}</td>
+        <td style="font-size:.8rem;color:var(--muted);white-space:nowrap">${u.createdAt ? formatDate(u.createdAt) : '—'}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('member-list').innerHTML =
+      `<tr><td colspan="5" style="text-align:center;color:var(--danger)">載入失敗：${escapeHtml(e.message)}</td></tr>`;
+  }
+}
+
+async function loadDashboard() {
+  let ordersSnap, productsSnap;
+  try {
+    [ordersSnap, productsSnap] = await Promise.all([
+      db.collection('orders').get(),
+      db.collection('products').where('active','==',true).get()
+    ]);
+  } catch(e) {
+    document.getElementById('recent-orders').innerHTML =
+      `<tr><td colspan="4" style="text-align:center;color:var(--danger)">載入失敗：${escapeHtml(e.message)}</td></tr>`;
+    document.getElementById('low-stock-list').innerHTML =
+      `<p style="color:var(--danger);font-size:.9rem">載入失敗</p>`;
+    return;
+  }
+
+  const orders = ordersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const products = productsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  // 統計
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayOrders = orders.filter(o => o.createdAt?.toDate() >= today);
+  const pending = orders.filter(o => o.status === 'pending');
+  const revenue = orders.filter(o => o.status === 'completed').reduce((s,o) => s + (o.total||0), 0);
+
+  document.getElementById('stat-today').textContent = todayOrders.length;
+  document.getElementById('stat-revenue').textContent = formatPrice(revenue);
+  document.getElementById('stat-pending').textContent = pending.length;
+  document.getElementById('stat-products').textContent = products.length;
+
+  // 最新訂單
+  const tbody = document.getElementById('recent-orders');
+  const recent = orders.slice(0,8);
+  tbody.innerHTML = recent.length ? recent.map(o => `
+    <tr>
+      <td><a href="orders.html" style="color:var(--primary)">#${o.id.slice(0,8).toUpperCase()}</a></td>
+      <td>${formatPrice(o.total)}</td>
+      <td><span class="badge ${STATUS_BADGE[o.status]||'badge-gray'}">${STATUS_LABEL[o.status]||o.status}</span></td>
+      <td style="white-space:nowrap;font-size:.8rem;color:var(--muted)">${formatDate(o.createdAt)}</td>
+    </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--muted)">暫無訂單</td></tr>';
+
+  // 低庫存（有樣式取合計，無樣式取 p.stock）
+  const getEffectiveStock = p => p.variants && p.variants.length
+    ? p.variants.reduce((s, v) => s + (Number(v.stock) || 0), 0)
+    : (p.stock ?? 999);
+  const lowStock = products
+    .map(p => ({ ...p, _stock: getEffectiveStock(p) }))
+    .filter(p => p._stock < 10)
+    .sort((a, b) => a._stock - b._stock);
+  const el = document.getElementById('low-stock-list');
+  el.innerHTML = lowStock.length ? lowStock.map(p => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:.9rem">${escapeHtml(p.name)}${p.variants&&p.variants.length?` <span style="font-size:.75rem;color:var(--muted)">(${p.variants.length}樣式)</span>`:''}</span>
+      <span class="badge ${p._stock<=0?'badge-danger':'badge-warn'}">${p._stock<=0?'售完':'剩 '+p._stock}</span>
+    </div>`).join('') : '<p style="color:var(--muted);font-size:.9rem">庫存狀況良好 ✅</p>';
+}
+
+function doLogout() {
+  auth.signOut().then(() => window.location.href = '../index.html');
+}
+</script>
+</body>
+</html>

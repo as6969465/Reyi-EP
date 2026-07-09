@@ -1,0 +1,220 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reyi-EP</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+.s-header{background:rgba(255,255,255,.88);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(210,210,215,.6);position:sticky;top:0;z-index:200}
+.s-header-inner{max-width:1280px;margin:auto;padding:.8rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem}
+.s-logo{font-size:1.35rem;font-weight:800;color:#1d1d1f;letter-spacing:-.04em;flex-shrink:0}
+.s-nav{display:flex;align-items:center;gap:.75rem}
+.s-nav a,.s-nav button{font-size:.85rem;color:#6e6e73;background:none;border:none;cursor:pointer;padding:.35rem .6rem;border-radius:8px;transition:color .15s,background .15s;white-space:nowrap;text-decoration:none;font-family:inherit}
+.s-nav a:hover,.s-nav button:hover{color:#1d1d1f;background:rgba(0,0,0,.04)}
+.s-cart-count{background:#ff3b30;color:#fff;font-size:.64rem;font-weight:700;border-radius:99px;padding:1px 5px;min-width:16px;text-align:center;display:inline-block}
+.s-btn-login{background:#1d1d1f!important;color:#fff!important;border-radius:980px!important;padding:.38rem 1.1rem!important;font-weight:600!important}
+.s-btn-login:hover{opacity:.85!important}
+.cart-layout{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start}
+@media(max-width:768px){
+  .cart-layout{grid-template-columns:1fr}
+  .s-header-inner{padding:.65rem 1rem}
+  .s-nav{gap:.5rem}
+  .cart-item{flex-wrap:wrap;gap:.5rem}
+  .cart-item>div:last-child,.cart-item>button:last-child{margin-left:auto}
+}
+  </style>
+  <style>body{visibility:hidden}</style>
+  <script src="js/store-name-init.js"></script>
+</head>
+<body>
+
+<header class="s-header">
+  <div class="s-header-inner">
+    <a href="shop.html" class="s-logo store-name-el"></a>
+    <nav class="s-nav">
+      <a href="shop.html">繼續購物</a>
+      <a href="member.html" id="nav-member" style="display:none">👤 <span id="nav-username">會員</span></a>
+      <button onclick="doLogout()" id="nav-logout" style="display:none">登出</button>
+      <a href="index.html" id="nav-login" class="s-btn-login">登入 / 註冊</a>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <h1 class="page-title">購物車</h1>
+  <div class="cart-layout" id="cart-layout">
+    <!-- 商品清單 -->
+    <div class="card">
+      <div id="cart-items"></div>
+    </div>
+    <!-- 金額摘要 -->
+    <div>
+      <div class="card" id="summary-card">
+        <h3 style="font-weight:700;margin-bottom:1rem">訂單摘要</h3>
+        <div class="summary-box">
+          <div class="summary-row"><span>小計</span><span id="subtotal">NT$ 0</span></div>
+          <div class="summary-row"><span>運費</span><span id="shipping-fee">NT$ 60</span></div>
+          <div class="summary-row"><span>折扣</span><span id="discount-amount" style="color:var(--success)">-NT$ 0</span></div>
+          <div class="summary-row total"><span>合計</span><span id="total-price">NT$ 0</span></div>
+        </div>
+        <div class="form-group" style="margin-top:1rem">
+          <label class="form-label">優惠碼</label>
+          <div style="display:flex;gap:.5rem">
+            <input id="coupon-input" type="text" class="form-input" placeholder="輸入優惠碼">
+            <button class="btn btn-outline" onclick="applyCoupon()">套用</button>
+          </div>
+          <span id="coupon-msg" class="form-hint"></span>
+        </div>
+        <button class="btn btn-primary btn-full" id="btn-checkout" onclick="goCheckout()">前往結帳</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyByVQewloZcL4cMrPKxyZ5JlhaGS4Zep08",
+  authDomain: "reyi-ep.firebaseapp.com",
+  projectId: "reyi-ep",
+  storageBucket: "reyi-ep.firebasestorage.app",
+  messagingSenderId: "90799325656",
+  appId: "1:90799325656:web:df2ce64d86ef9c9060b2ad"
+};
+firebase.initializeApp(firebaseConfig);
+</script>
+  <script src="js/app-helpers.js"></script>
+<script src="js/cart.js"></script>
+<script>
+let appliedDiscount = 0;
+const SHIPPING = 60;
+
+auth.onAuthStateChanged(user => {
+  document.body.style.visibility = 'visible';
+  if (user) {
+    setCartUser(user.uid);
+    const name = user.displayName || user.email.split('@')[0];
+    document.getElementById('nav-username').textContent = name;
+    document.getElementById('nav-member').style.display = '';
+    document.getElementById('nav-logout').style.display = '';
+    document.getElementById('nav-login').style.display = 'none';
+    applyStoreName('');
+    loadCartCount();
+    renderCart();
+  } else {
+    window.location.href = 'index.html';
+  }
+});
+
+function renderCart() {
+  const cart = getCart();
+  const container = document.getElementById('cart-items');
+  if (!cart.length) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:3rem;color:var(--muted)">
+        <div style="font-size:3rem;margin-bottom:1rem">🛒</div>
+        <p style="margin-bottom:1rem">購物車是空的</p>
+        <a href="shop.html" class="btn btn-primary">去逛逛</a>
+      </div>`;
+    document.getElementById('summary-card').style.display = 'none';
+    return;
+  }
+  container.innerHTML = cart.map((item, idx) => `
+    <div class="cart-item">
+      <div class="cart-item-img">
+        ${item.imageUrl ? `<img data-cart-idx="${idx}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">` : '📦'}
+      </div>
+      <div style="flex:1">
+        <div class="cart-item-name">${escapeHtml(item.name)}</div>
+        ${item.variantName ? `<div style="font-size:.8rem;color:var(--muted);margin-top:.15rem">樣式：${escapeHtml(item.variantName)}</div>` : ''}
+        <div class="cart-item-price">${formatPrice(item.price)} / 件</div>
+      </div>
+      <div class="qty-control">
+        <button class="qty-btn" data-idx="${idx}" data-delta="-1" onclick="changeQtyByIdx(+this.dataset.idx,+this.dataset.delta)">－</button>
+        <input class="qty-input" type="number" value="${item.qty}" min="1" max="${item.stock}"
+          data-idx="${idx}" onchange="changeQtyByIdxVal(+this.dataset.idx,parseInt(this.value)||1)">
+        <button class="qty-btn" data-idx="${idx}" data-delta="1" onclick="changeQtyByIdx(+this.dataset.idx,+this.dataset.delta)">＋</button>
+      </div>
+      <div style="min-width:90px;text-align:right;font-weight:700">${formatPrice(item.price * item.qty)}</div>
+      <button class="btn btn-sm" data-idx="${idx}" onclick="removeItemByIdx(+this.dataset.idx)" style="color:var(--danger);background:none;border:none;cursor:pointer;font-size:1.1rem">🗑</button>
+    </div>
+  `).join('');
+  container.querySelectorAll('img[data-cart-idx]').forEach(img => {
+    const it = cart[+img.dataset.cartIdx];
+    if (it) img.src = safeImgSrc(it.imageUrl);
+  });
+  updateSummary();
+}
+
+function changeQtyByIdx(idx, delta) {
+  const cart = getCart();
+  const item = cart[idx];
+  if (!item) return;
+  updateCartQty(item.id, item.qty + delta, item.variantId);
+  renderCart();
+}
+
+function changeQtyByIdxVal(idx, qty) {
+  const cart = getCart();
+  const item = cart[idx];
+  if (!item) return;
+  updateCartQty(item.id, qty, item.variantId);
+  renderCart();
+}
+
+function removeItemByIdx(idx) {
+  const cart = getCart();
+  const item = cart[idx];
+  if (!item) return;
+  removeFromCart(item.id, item.variantId);
+  renderCart();
+}
+
+function updateSummary() {
+  const subtotal = getCartTotal();
+  const total = subtotal + SHIPPING - appliedDiscount;
+  document.getElementById('subtotal').textContent = formatPrice(subtotal);
+  document.getElementById('shipping-fee').textContent = formatPrice(SHIPPING);
+  document.getElementById('discount-amount').textContent = `-${formatPrice(appliedDiscount)}`;
+  document.getElementById('total-price').textContent = formatPrice(Math.max(0, total));
+}
+
+async function applyCoupon() {
+  const code = document.getElementById('coupon-input').value.trim().toUpperCase();
+  const msg = document.getElementById('coupon-msg');
+  if (!code) return;
+  try {
+    const snap = await db.collection('coupons').doc(code).get();
+    if (!snap.exists) { msg.style.color = 'var(--danger)'; msg.textContent = '優惠碼不存在'; return; }
+    const c = snap.data();
+    if (!c.active) { msg.style.color = 'var(--danger)'; msg.textContent = '此優惠碼已失效'; return; }
+    if (c.minAmount && getCartTotal() < c.minAmount) {
+      msg.style.color = 'var(--danger)';
+      msg.textContent = `消費滿 ${formatPrice(c.minAmount)} 才可使用`;
+      return;
+    }
+    appliedDiscount = c.type === 'percent' ? Math.round(getCartTotal() * c.value / 100) : (c.value || 0);
+    msg.style.color = 'var(--success)';
+    msg.textContent = `優惠碼套用成功，折扣 ${formatPrice(appliedDiscount)}`;
+    sessionStorage.setItem('coupon', JSON.stringify({ code, discount: appliedDiscount }));
+    updateSummary();
+  } catch(e) {
+    msg.style.color = 'var(--danger)'; msg.textContent = '套用失敗：' + e.message;
+  }
+}
+
+function goCheckout() {
+  if (!getCart().length) return;
+  window.location.href = 'checkout.html';
+}
+
+function doLogout() {
+  auth.signOut().then(() => window.location.href = 'index.html');
+}
+</script>
+</body>
+</html>

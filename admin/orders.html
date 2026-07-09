@@ -1,0 +1,284 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reyi-EP — 訂單管理</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { display:flex; min-height:100vh; }
+    .sidebar { width:230px; background:#fff; border-right:1px solid rgba(0,0,0,.07); color:#1d1d1f; flex-shrink:0; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .sidebar-brand { padding:1.4rem 1.25rem 1rem; border-bottom:1px solid rgba(0,0,0,.06); }
+    .sidebar-brand-name { font-size:1.05rem; font-weight:800; color:#1d1d1f; letter-spacing:-.04em; }
+    .sidebar-brand-sub { font-size:.73rem; color:#6e6e73; margin-top:.2rem; }
+    .sidebar-nav { display:flex; flex-direction:column; gap:.1rem; padding:.75rem; flex:1; }
+    .sidebar-link { display:flex; align-items:center; gap:.65rem; padding:.58rem .75rem; border-radius:10px; color:#3a3a3c; font-size:.875rem; font-weight:500; cursor:pointer; border:none; background:none; text-align:left; text-decoration:none; transition:background .15s, color .15s; font-family:inherit; }
+    .sidebar-link:hover { background:rgba(0,0,0,.05); color:#1d1d1f; }
+    .sidebar-link.active { background:rgba(0,102,204,.1); color:#0066cc; font-weight:600; }
+    .sidebar-link svg { flex-shrink:0; opacity:.75; }
+    .sidebar-link.active svg, .sidebar-link:hover svg { opacity:1; }
+    .sidebar-footer { padding:.75rem; border-top:1px solid rgba(0,0,0,.06); }
+    .sidebar-footer .sidebar-link { color:#6e6e73; }
+    .sidebar-footer .sidebar-link:hover { color:#1d1d1f; }
+    .sidebar-footer .sidebar-link.danger:hover { color:#ff3b30; background:rgba(255,59,48,.06); }
+    .main { flex:1; overflow-y:auto; background:var(--bg); min-width:0; }
+    .main-header { background:rgba(255,255,255,.88); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px); border-bottom:1px solid rgba(210,210,215,.6); padding:.85rem 1.5rem; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; }
+    .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+    .stat-card { background:#fff; border-radius:var(--radius); padding:1.25rem; box-shadow:var(--shadow); }
+    .stat-label { font-size:.8rem; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+    .stat-value { font-size:1.75rem; font-weight:800; margin:.4rem 0; }
+    .stat-sub { font-size:.8rem; color:var(--muted); }
+    @media(max-width:900px){ .stat-grid{grid-template-columns:repeat(2,1fr);} .sidebar{display:none;} }
+  </style>
+  <script src="../js/store-name-init.js"></script>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-name"><span class="store-name-el"></span></div>
+    <div class="sidebar-brand-sub">管理後台</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="index.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg> 總覽儀表板</a>
+    <a href="products.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5L8 1.5L14 4.5V11.5L8 14.5L2 11.5V4.5Z"/><path d="M2 4.5L8 7.5L14 4.5"/><line x1="8" y1="7.5" x2="8" y2="14.5"/></svg> 商品管理</a>
+    <a href="orders.html" class="sidebar-link active"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="1" width="11" height="14" rx="1.5"/><line x1="5" y1="5" x2="11" y2="5"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="5" y1="11" x2="8.5" y2="11"/></svg> 訂單管理</a>
+    <a href="promotions.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5.5" cy="5.5" r="1.5"/><circle cx="10.5" cy="10.5" r="1.5"/><line x1="3" y1="13" x2="13" y2="3"/></svg> 優惠設定</a>
+    <a href="shipping.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 3.5H10.5V11H1.5z"/><path d="M10.5 6H13L15 9V11H10.5z"/><circle cx="4" cy="12.5" r="1.5"/><circle cx="12" cy="12.5" r="1.5"/></svg> 取貨設定</a>
+    <a href="settings.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5V3M8 13V14.5M1.5 8H3M13 8H14.5M3.4 3.4L4.4 4.4M11.6 11.6L12.6 12.6M3.4 12.6L4.4 11.6M11.6 4.4L12.6 3.4"/></svg> 系統設定</a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="../shop.html" class="sidebar-link" target="_blank"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5L3.5 2h9L14 5.5"/><rect x="1" y="5.5" width="14" height="9" rx="1"/><path d="M6.5 14.5V9.5H9.5V14.5"/></svg> 前往前台</a>
+    <button class="sidebar-link danger" onclick="doLogout()" style="width:100%"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5H3a1 1 0 00-1 1V12.5a1 1 0 001 1H6.5"/><polyline points="10.5,11 14,8 10.5,5"/><line x1="14" y1="8" x2="6" y2="8"/></svg> 登出</button>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="main-header">
+    <h1 style="font-size:1.1rem;font-weight:700">訂單管理</h1>
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+      <input id="search" type="text" class="form-input" placeholder="搜尋訂單編號/收件人..." style="width:200px" oninput="renderTable()">
+      <select id="filter-status" class="form-select" style="width:auto" onchange="renderTable()">
+        <option value="">所有狀態</option>
+        <option value="pending">待處理</option>
+        <option value="processing">備貨中</option>
+        <option value="shipped">已出貨</option>
+        <option value="completed">已完成</option>
+        <option value="cancelled">已取消</option>
+      </select>
+      <div style="display:flex;align-items:center;gap:.4rem">
+        <input id="filter-date-from" type="date" class="form-input" style="width:140px" onchange="renderTable()" title="起始日期">
+        <span style="color:var(--muted);font-size:.85rem">～</span>
+        <input id="filter-date-to" type="date" class="form-input" style="width:140px" onchange="renderTable()" title="結束日期">
+        <button class="btn btn-outline btn-sm" onclick="clearDateFilter()">清除</button>
+      </div>
+    </div>
+  </div>
+  <div style="padding:1.5rem">
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>訂單編號</th>
+              <th>收件人</th>
+              <th>取貨方式</th>
+              <th>付款</th>
+              <th>金額</th>
+              <th>狀態</th>
+              <th>時間</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="order-tbody"><tr><td colspan="8" style="text-align:center"><div class="spinner"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 訂單詳情 Modal -->
+<div class="modal-overlay" id="order-modal" style="display:none">
+  <div class="modal-box" style="max-width:680px">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 class="modal-title" id="modal-order-id">訂單詳情</h3>
+    <div id="order-detail"></div>
+    <div style="margin-top:1.25rem">
+      <label class="form-label">更新訂單狀態</label>
+      <div style="display:flex;gap:.75rem;margin-top:.5rem;flex-wrap:wrap">
+        <button class="btn btn-sm btn-outline" onclick="updateStatus('pending')">待處理</button>
+        <button class="btn btn-sm" style="background:#dbeafe;color:#1d4ed8;border:none;border-radius:8px;padding:.35rem .8rem;font-size:.8rem;font-weight:600;cursor:pointer" onclick="updateStatus('processing')">備貨中</button>
+        <button class="btn btn-sm" style="background:#e0f2fe;color:#0369a1;border:none;border-radius:8px;padding:.35rem .8rem;font-size:.8rem;font-weight:600;cursor:pointer" onclick="updateStatus('shipped')">已出貨</button>
+        <button class="btn btn-sm" style="background:#dcfce7;color:#15803d;border:none;border-radius:8px;padding:.35rem .8rem;font-size:.8rem;font-weight:600;cursor:pointer" onclick="updateStatus('completed')">已完成</button>
+        <button class="btn btn-sm btn-danger" style="font-size:.8rem;padding:.35rem .8rem" onclick="updateStatus('cancelled')">取消訂單</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="admin-bottom-nav"><div class="admin-bottom-nav-inner">
+  <a href="index.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>總覽</span></a>
+  <a href="products.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l8-4 8 4v10l-8 4-8-4V7z"/><path d="M4 7l8 4 8-4"/><line x1="12" y1="11" x2="12" y2="21"/></svg><span>商品</span></a>
+  <a href="orders.html" class="admin-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="12" y2="15"/></svg><span>訂單</span></a>
+  <a href="promotions.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="2"/><circle cx="15" cy="15" r="2"/><line x1="5" y1="19" x2="19" y2="5"/></svg><span>優惠</span></a>
+  <a href="shipping.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="13" height="12" rx="1"/><path d="M14 9h4l3 4v4h-7V9z"/><circle cx="6" cy="20" r="2"/><circle cx="18" cy="20" r="2"/></svg><span>配送</span></a>
+  <a href="settings.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><span>設定</span></a>
+</div></nav>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyByVQewloZcL4cMrPKxyZ5JlhaGS4Zep08",
+  authDomain: "reyi-ep.firebaseapp.com",
+  projectId: "reyi-ep",
+  storageBucket: "reyi-ep.firebasestorage.app",
+  messagingSenderId: "90799325656",
+  appId: "1:90799325656:web:df2ce64d86ef9c9060b2ad"
+};
+firebase.initializeApp(firebaseConfig);
+</script>
+  <script src="../js/app-helpers.js"></script>
+<script>
+const STATUS_BADGE = { pending:'badge-warn', processing:'badge-info', shipped:'badge-info', completed:'badge-success', cancelled:'badge-danger' };
+const STATUS_LABEL = { pending:'待處理', processing:'備貨中', shipped:'已出貨', completed:'已完成', cancelled:'已取消' };
+const PAY_LABEL = { cod:'貨到付款', transfer:'銀行轉帳', credit:'信用卡' };
+
+let orders = [];
+let currentOrderId = null;
+
+auth.onAuthStateChanged(async user => {
+  if (!user) return window.location.href = '../index.html';
+  const doc = await db.collection('admins').doc(user.uid).get();
+  if (!doc.exists) return window.location.href = '../shop.html';
+  applyStoreName(' — 管理後台');
+  loadOrders();
+});
+
+async function loadOrders() {
+  try {
+    const snap = await db.collection('orders').get();
+    orders = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+    renderTable();
+  } catch(e) {
+    document.getElementById('order-tbody').innerHTML =
+      `<tr><td colspan="8" style="text-align:center;color:var(--danger)">載入失敗：${escapeHtml(e.message)}</td></tr>`;
+  }
+}
+
+function clearDateFilter() {
+  document.getElementById('filter-date-from').value = '';
+  document.getElementById('filter-date-to').value = '';
+  renderTable();
+}
+
+function renderTable() {
+  const q    = document.getElementById('search').value.toLowerCase();
+  const st   = document.getElementById('filter-status').value;
+  const from = document.getElementById('filter-date-from').value;
+  const to   = document.getElementById('filter-date-to').value;
+  const fromTs = from ? new Date(from).getTime() : null;
+  const toTs   = to   ? new Date(to + 'T23:59:59').getTime() : null;
+
+  const filtered = orders.filter(o => {
+    if (st && o.status !== st) return false;
+    if (q && !o.id.toLowerCase().includes(q) && !(o.receiver?.name||'').toLowerCase().includes(q)) return false;
+    if (fromTs || toTs) {
+      const ts = o.createdAt?.seconds ? o.createdAt.seconds * 1000 : (o.createdAt?.toDate?.()?.getTime?.() ?? 0);
+      if (fromTs && ts < fromTs) return false;
+      if (toTs   && ts > toTs)   return false;
+    }
+    return true;
+  });
+  const tbody = document.getElementById('order-tbody');
+  tbody.innerHTML = filtered.length ? filtered.map(o => `
+    <tr>
+      <td style="font-family:monospace;font-size:.85rem">#${escapeHtml(o.id.slice(0,8).toUpperCase())}</td>
+      <td>
+        <div style="font-weight:600">${escapeHtml(o.receiver?.name||'—')}</div>
+        <div style="font-size:.78rem;color:var(--muted)">${escapeHtml(o.receiver?.phone||'')}</div>
+      </td>
+      <td style="font-size:.85rem">${escapeHtml(o.shipping?.method||'—')}</td>
+      <td style="font-size:.85rem">
+        <div>${escapeHtml(PAY_LABEL[o.payment?.method]||o.payment?.method||'—')}</div>
+        ${o.payment?.method === 'transfer' ? o.payment?.transferCode
+          ? `<div style="font-size:.75rem;color:#065f46;margin-top:.2rem;font-weight:600">✅ 後五碼：${escapeHtml(o.payment.transferCode)}</div>
+             <div style="font-size:.72rem;color:var(--muted)">${formatDate(o.payment.transferAt)}</div>`
+          : `<div style="font-size:.75rem;color:#b45309;margin-top:.2rem">⏳ 待匯款登錄</div>`
+        : ''}
+      </td>
+      <td style="font-weight:700">${formatPrice(o.total)}</td>
+      <td><span class="badge ${STATUS_BADGE[o.status]||'badge-gray'}">${STATUS_LABEL[o.status]||escapeHtml(o.status)}</span></td>
+      <td style="font-size:.78rem;color:var(--muted);white-space:nowrap">${formatDate(o.createdAt)}</td>
+      <td><button class="btn btn-outline btn-sm" data-oid="${escapeHtml(o.id)}" onclick="openOrder(this.dataset.oid)">查看</button></td>
+    </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted)">找不到訂單</td></tr>';
+}
+
+function openOrder(id) {
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+  currentOrderId = id;
+  document.getElementById('modal-order-id').textContent = `訂單 #${id.slice(0,8).toUpperCase()}`;
+  document.getElementById('order-detail').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div>
+        <div class="form-label">收件人</div>
+        <div>${escapeHtml(o.receiver?.name||'')} / ${escapeHtml(o.receiver?.phone||'')}</div>
+        <div style="font-size:.85rem;color:var(--muted)">${escapeHtml(o.receiver?.email||'')}</div>
+      </div>
+      <div>
+        <div class="form-label">取貨方式</div>
+        <div>${escapeHtml(o.shipping?.method||'—')}</div>
+        <div style="font-size:.85rem;color:var(--muted)">${escapeHtml(o.shipping?.address||'')}</div>
+      </div>
+      <div>
+        <div class="form-label">付款方式</div>
+        <div>${escapeHtml(PAY_LABEL[o.payment?.method]||o.payment?.method||'—')}</div>
+        ${o.payment?.method === 'transfer' ? `
+          <div style="margin-top:.35rem;font-size:.82rem">
+            ${o.payment?.transferCode
+              ? `<span style="color:#065f46;font-weight:600">✅ 後五碼：${escapeHtml(o.payment.transferCode)}</span>
+                 <span style="color:var(--muted);margin-left:.4rem">${formatDate(o.payment.transferAt)}</span>`
+              : `<span style="color:var(--muted)">⏳ 買家尚未登錄後五碼</span>`}
+          </div>` : ''}
+      </div>
+      <div>
+        <div class="form-label">目前狀態</div>
+        <span class="badge ${STATUS_BADGE[o.status]||'badge-gray'}">${STATUS_LABEL[o.status]||escapeHtml(o.status)}</span>
+      </div>
+    </div>
+    ${o.note ? `<div class="alert alert-info" style="margin-bottom:1rem">備註：${escapeHtml(o.note)}</div>` : ''}
+    <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1rem">
+      <table style="width:100%">
+        <thead><tr><th>商品</th><th>數量</th><th>小計</th></tr></thead>
+        <tbody>
+          ${(o.items||[]).map(i=>`<tr><td>${escapeHtml(i.name)}</td><td>×${Number(i.qty)}</td><td>${formatPrice(i.price*i.qty)}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="summary-box">
+      <div class="summary-row"><span>商品小計</span><span>${formatPrice(o.subtotal)}</span></div>
+      <div class="summary-row"><span>運費</span><span>${formatPrice(o.shipping?.fee||0)}</span></div>
+      ${o.coupon ? `<div class="summary-row"><span>折扣（${escapeHtml(o.coupon.code)}）</span><span style="color:var(--success)">-${formatPrice(o.coupon.discount)}</span></div>` : ''}
+      <div class="summary-row total"><span>合計</span><span>${formatPrice(o.total)}</span></div>
+    </div>`;
+  document.getElementById('order-modal').style.display = 'flex';
+}
+
+async function updateStatus(status) {
+  if (!currentOrderId) return;
+  if (status === 'cancelled' && !confirm('確定要取消此訂單？')) return;
+  await db.collection('orders').doc(currentOrderId).update({ status, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  const idx = orders.findIndex(o=>o.id===currentOrderId);
+  if (idx>-1) orders[idx].status = status;
+  renderTable();
+  closeModal();
+}
+
+function closeModal() { document.getElementById('order-modal').style.display = 'none'; }
+function doLogout() { auth.signOut().then(() => window.location.href = '../index.html'); }
+</script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reyi-EP — 系統設定</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { display:flex; min-height:100vh; }
+    .sidebar { width:230px; background:#fff; border-right:1px solid rgba(0,0,0,.07); color:#1d1d1f; flex-shrink:0; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .sidebar-brand { padding:1.4rem 1.25rem 1rem; border-bottom:1px solid rgba(0,0,0,.06); }
+    .sidebar-brand-name { font-size:1.05rem; font-weight:800; color:#1d1d1f; letter-spacing:-.04em; }
+    .sidebar-brand-sub { font-size:.73rem; color:#6e6e73; margin-top:.2rem; }
+    .sidebar-nav { display:flex; flex-direction:column; gap:.1rem; padding:.75rem; flex:1; }
+    .sidebar-link { display:flex; align-items:center; gap:.65rem; padding:.58rem .75rem; border-radius:10px; color:#3a3a3c; font-size:.875rem; font-weight:500; cursor:pointer; border:none; background:none; text-align:left; text-decoration:none; transition:background .15s, color .15s; font-family:inherit; }
+    .sidebar-link:hover { background:rgba(0,0,0,.05); color:#1d1d1f; }
+    .sidebar-link.active { background:rgba(0,102,204,.1); color:#0066cc; font-weight:600; }
+    .sidebar-link svg { flex-shrink:0; opacity:.75; }
+    .sidebar-link.active svg, .sidebar-link:hover svg { opacity:1; }
+    .sidebar-footer { padding:.75rem; border-top:1px solid rgba(0,0,0,.06); }
+    .sidebar-footer .sidebar-link { color:#6e6e73; }
+    .sidebar-footer .sidebar-link:hover { color:#1d1d1f; }
+    .sidebar-footer .sidebar-link.danger:hover { color:#ff3b30; background:rgba(255,59,48,.06); }
+    .main { flex:1; overflow-y:auto; background:var(--bg); min-width:0; }
+    .main-header { background:rgba(255,255,255,.88); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px); border-bottom:1px solid rgba(210,210,215,.6); padding:.85rem 1.5rem; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; }
+    .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+    .stat-card { background:#fff; border-radius:var(--radius); padding:1.25rem; box-shadow:var(--shadow); }
+    .stat-label { font-size:.8rem; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+    .stat-value { font-size:1.75rem; font-weight:800; margin:.4rem 0; }
+    .stat-sub { font-size:.8rem; color:var(--muted); }
+    @media(max-width:900px){ .stat-grid{grid-template-columns:repeat(2,1fr);} .sidebar{display:none;} }
+  </style>
+  <script src="../js/store-name-init.js"></script>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-name"><span class="store-name-el"></span></div>
+    <div class="sidebar-brand-sub">管理後台</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="index.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg> 總覽儀表板</a>
+    <a href="products.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5L8 1.5L14 4.5V11.5L8 14.5L2 11.5V4.5Z"/><path d="M2 4.5L8 7.5L14 4.5"/><line x1="8" y1="7.5" x2="8" y2="14.5"/></svg> 商品管理</a>
+    <a href="orders.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="1" width="11" height="14" rx="1.5"/><line x1="5" y1="5" x2="11" y2="5"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="5" y1="11" x2="8.5" y2="11"/></svg> 訂單管理</a>
+    <a href="promotions.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5.5" cy="5.5" r="1.5"/><circle cx="10.5" cy="10.5" r="1.5"/><line x1="3" y1="13" x2="13" y2="3"/></svg> 優惠設定</a>
+    <a href="shipping.html" class="sidebar-link"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 3.5H10.5V11H1.5z"/><path d="M10.5 6H13L15 9V11H10.5z"/><circle cx="4" cy="12.5" r="1.5"/><circle cx="12" cy="12.5" r="1.5"/></svg> 取貨設定</a>
+    <a href="settings.html" class="sidebar-link active"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5V3M8 13V14.5M1.5 8H3M13 8H14.5M3.4 3.4L4.4 4.4M11.6 11.6L12.6 12.6M3.4 12.6L4.4 11.6M11.6 4.4L12.6 3.4"/></svg> 系統設定</a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="../shop.html" class="sidebar-link" target="_blank"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5L3.5 2h9L14 5.5"/><rect x="1" y="5.5" width="14" height="9" rx="1"/><path d="M6.5 14.5V9.5H9.5V14.5"/></svg> 前往前台</a>
+    <button class="sidebar-link danger" onclick="doLogout()" style="width:100%"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5H3a1 1 0 00-1 1V12.5a1 1 0 001 1H6.5"/><polyline points="10.5,11 14,8 10.5,5"/><line x1="14" y1="8" x2="6" y2="8"/></svg> 登出</button>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="main-header">
+    <h1 style="font-size:1.1rem;font-weight:700">系統設定</h1>
+  </div>
+  <div style="padding:1.5rem;display:flex;flex-direction:column;gap:1.5rem;max-width:720px">
+
+    <!-- 賣場名稱 -->
+    <div class="card">
+      <h3 style="font-weight:700;margin-bottom:.5rem">🏪 賣場名稱</h3>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">顯示於前台頁面標題與 Logo 區域。</p>
+      <div style="display:flex;gap:.75rem;align-items:center">
+        <input id="store-name" type="text" class="form-input" placeholder="例：KrSu 韓流小舖" style="max-width:320px">
+        <button class="btn btn-primary" onclick="saveStoreName()">儲存</button>
+      </div>
+      <div id="store-alert" style="margin-top:.75rem"></div>
+    </div>
+
+    <!-- 匯款帳號 -->
+    <div class="card">
+      <h3 style="font-weight:700;margin-bottom:.5rem">🏦 銀行匯款帳號</h3>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">顧客選擇「銀行轉帳」付款後，可在「我的訂單」查看此帳號。</p>
+      <div style="display:flex;flex-direction:column;gap:.75rem;max-width:400px">
+        <div>
+          <label class="form-label">銀行名稱</label>
+          <input id="bank-name" type="text" class="form-input" placeholder="例：台灣銀行 012">
+        </div>
+        <div>
+          <label class="form-label">戶名</label>
+          <input id="bank-holder" type="text" class="form-input" placeholder="例：王小明">
+        </div>
+        <div>
+          <label class="form-label">帳號</label>
+          <input id="bank-account" type="text" class="form-input" placeholder="例：012-123456789012">
+        </div>
+        <button class="btn btn-primary" style="width:fit-content" onclick="saveBankAccount()">儲存</button>
+      </div>
+      <div id="bank-alert" style="margin-top:.75rem"></div>
+    </div>
+
+    <!-- 社群連結 -->
+    <div class="card">
+      <h3 style="font-weight:700;margin-bottom:.5rem">🔗 社群連結</h3>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">設定後，前台導覽列會顯示 LINE 與 Instagram 圖示。留空則不顯示。</p>
+      <div style="display:flex;flex-direction:column;gap:.75rem;max-width:400px">
+        <div>
+          <label class="form-label">LINE 網址</label>
+          <input id="social-line" type="url" class="form-input" placeholder="例：https://line.me/ti/p/~yourId">
+        </div>
+        <div>
+          <label class="form-label">Instagram 網址</label>
+          <input id="social-instagram" type="url" class="form-input" placeholder="例：https://www.instagram.com/yourAccount">
+        </div>
+        <button class="btn btn-primary" style="width:fit-content" onclick="saveSocialLinks()">儲存</button>
+      </div>
+      <div id="social-alert" style="margin-top:.75rem"></div>
+    </div>
+
+    <!-- 公告橫幅 -->
+    <div class="card">
+      <h3 style="font-weight:700;margin-bottom:1rem">📢 公告橫幅</h3>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">顯示於前台購物頁頂部，可設定促銷公告或重要通知。</p>
+      <div id="banner-list" style="margin-bottom:1rem"></div>
+      <div style="display:flex;gap:.75rem;margin-bottom:.75rem">
+        <input id="new-banner" type="text" class="form-input" placeholder="輸入公告文字，例：夏季特賣最低 5 折起！">
+        <button class="btn btn-outline" onclick="addBanner()">新增</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.25rem">
+        <label class="form-label" style="white-space:nowrap;margin:0">切換秒數（多條公告自動輪播）</label>
+        <input id="banner-interval" type="number" class="form-input" min="1" max="60" value="5" style="width:90px">
+        <span style="font-size:.84rem;color:var(--muted)">秒</span>
+      </div>
+      <div id="banner-alert" style="margin-top:.75rem"></div>
+      <button class="btn btn-primary" style="margin-top:1rem" onclick="saveBanners()">儲存公告</button>
+    </div>
+
+    <!-- 管理員設定 -->
+    <div class="card">
+      <h3 style="font-weight:700;margin-bottom:1rem">👤 管理員帳號</h3>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">
+        在 Firestore 中，<code style="background:#f1f5f9;padding:.1rem .4rem;border-radius:4px">admins/{uid}</code> 集合內有文件的使用者即為管理員。
+        新增管理員請於 Firebase Console 手動建立文件，或透過以下工具指定 UID。
+      </p>
+      <div style="display:flex;gap:.75rem">
+        <input id="admin-uid" type="text" class="form-input" placeholder="貼上要授權的使用者 UID">
+        <button class="btn btn-outline" onclick="addAdmin()">授權</button>
+      </div>
+      <div id="admin-alert" style="margin-top:.75rem"></div>
+    </div>
+
+
+  </div>
+</div>
+
+<nav class="admin-bottom-nav"><div class="admin-bottom-nav-inner">
+  <a href="index.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>總覽</span></a>
+  <a href="products.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l8-4 8 4v10l-8 4-8-4V7z"/><path d="M4 7l8 4 8-4"/><line x1="12" y1="11" x2="12" y2="21"/></svg><span>商品</span></a>
+  <a href="orders.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="12" y2="15"/></svg><span>訂單</span></a>
+  <a href="promotions.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="2"/><circle cx="15" cy="15" r="2"/><line x1="5" y1="19" x2="19" y2="5"/></svg><span>優惠</span></a>
+  <a href="shipping.html" class="admin-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="13" height="12" rx="1"/><path d="M14 9h4l3 4v4h-7V9z"/><circle cx="6" cy="20" r="2"/><circle cx="18" cy="20" r="2"/></svg><span>配送</span></a>
+  <a href="settings.html" class="admin-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><span>設定</span></a>
+</div></nav>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyByVQewloZcL4cMrPKxyZ5JlhaGS4Zep08",
+  authDomain: "reyi-ep.firebaseapp.com",
+  projectId: "reyi-ep",
+  storageBucket: "reyi-ep.firebasestorage.app",
+  messagingSenderId: "90799325656",
+  appId: "1:90799325656:web:df2ce64d86ef9c9060b2ad"
+};
+firebase.initializeApp(firebaseConfig);
+</script>
+  <script src="../js/app-helpers.js"></script>
+<script>
+let banners = [];
+
+auth.onAuthStateChanged(async user => {
+  if (!user) return window.location.href = '../index.html';
+  const doc = await db.collection('admins').doc(user.uid).get();
+  if (!doc.exists) return window.location.href = '../shop.html';
+  applyStoreName(' — 管理後台');
+  loadGeneral();
+  loadBanners();
+});
+
+async function loadGeneral() {
+  try {
+    const snap = await db.collection('settings').doc('general').get();
+    if (!snap.exists) return;
+    const d = snap.data();
+    if (d.storeName) document.getElementById('store-name').value = d.storeName;
+    if (d.bankAccount) {
+      document.getElementById('bank-name').value    = d.bankAccount.bankName    || '';
+      document.getElementById('bank-holder').value  = d.bankAccount.accountName || '';
+      document.getElementById('bank-account').value = d.bankAccount.accountNo   || '';
+    }
+    if (d.socialLinks) {
+      document.getElementById('social-line').value      = d.socialLinks.line      || '';
+      document.getElementById('social-instagram').value = d.socialLinks.instagram || '';
+    }
+  } catch(e) {}
+}
+
+async function saveSocialLinks() {
+  const line      = document.getElementById('social-line').value.trim();
+  const instagram = document.getElementById('social-instagram').value.trim();
+  const alertEl   = document.getElementById('social-alert');
+  try {
+    await db.collection('settings').doc('general').set({ socialLinks: { line, instagram } }, { merge: true });
+    alertEl.innerHTML = '<div class="alert alert-success">社群連結已儲存 ✓</div>';
+    setTimeout(() => alertEl.innerHTML = '', 3000);
+  } catch(e) {
+    alertEl.innerHTML = `<div class="alert alert-error">儲存失敗：${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function saveBankAccount() {
+  const bankName    = document.getElementById('bank-name').value.trim();
+  const accountName = document.getElementById('bank-holder').value.trim();
+  const accountNo   = document.getElementById('bank-account').value.trim();
+  const alertEl     = document.getElementById('bank-alert');
+  if (!bankName || !accountName || !accountNo) {
+    alertEl.innerHTML = '<div class="alert alert-error">請填寫完整匯款資訊</div>'; return;
+  }
+  try {
+    await db.collection('settings').doc('general').set({ bankAccount: { bankName, accountName, accountNo } }, { merge: true });
+    alertEl.innerHTML = '<div class="alert alert-success">匯款帳號已儲存 ✓</div>';
+    setTimeout(() => alertEl.innerHTML = '', 3000);
+  } catch(e) {
+    alertEl.innerHTML = `<div class="alert alert-error">儲存失敗：${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function saveStoreName() {
+  const name = document.getElementById('store-name').value.trim();
+  const alertEl = document.getElementById('store-alert');
+  if (!name) { alertEl.innerHTML = '<div class="alert alert-error">請輸入賣場名稱</div>'; return; }
+  try {
+    await db.collection('settings').doc('general').set({ storeName: name }, { merge: true });
+    alertEl.innerHTML = '<div class="alert alert-success">賣場名稱已儲存 ✓</div>';
+    setTimeout(() => alertEl.innerHTML = '', 3000);
+  } catch(e) {
+    alertEl.innerHTML = `<div class="alert alert-error">儲存失敗：${e.message}</div>`;
+  }
+}
+
+async function loadBanners() {
+  try {
+    const snap = await db.collection('settings').doc('banners').get();
+    banners = snap.exists ? (snap.data().items || []) : [];
+    if (snap.exists && snap.data().rotateInterval) {
+      document.getElementById('banner-interval').value = snap.data().rotateInterval;
+    }
+  } catch { banners = []; }
+  renderBanners();
+}
+
+function renderBanners() {
+  const el = document.getElementById('banner-list');
+  el.innerHTML = banners.length ? banners.map((b, i) => `
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem .75rem;background:#f8fafc;border-radius:8px;margin-bottom:.5rem">
+      <span style="flex:1;font-size:.9rem">📢 ${escapeHtml(b.text)}</span>
+      <button data-idx="${i}" onclick="removeBanner(parseInt(this.dataset.idx))" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:1rem">✕</button>
+    </div>`).join('') : '<p style="font-size:.85rem;color:var(--muted)">目前無公告</p>';
+}
+
+function addBanner() {
+  const text = document.getElementById('new-banner').value.trim();
+  if (!text) return;
+  banners.push({ text });
+  document.getElementById('new-banner').value = '';
+  renderBanners();
+}
+
+function removeBanner(i) {
+  banners.splice(i, 1);
+  renderBanners();
+}
+
+async function saveBanners() {
+  const alertEl = document.getElementById('banner-alert');
+  const rotateInterval = Math.max(1, parseInt(document.getElementById('banner-interval').value) || 5);
+  try {
+    await db.collection('settings').doc('banners').set({
+      items: banners,
+      rotateInterval,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alertEl.innerHTML = '<div class="alert alert-success">公告已儲存</div>';
+    setTimeout(() => alertEl.innerHTML = '', 3000);
+  } catch(e) {
+    alertEl.innerHTML = `<div class="alert alert-error">儲存失敗：${e.message}</div>`;
+  }
+}
+
+async function addAdmin() {
+  const uid = document.getElementById('admin-uid').value.trim();
+  const alertEl = document.getElementById('admin-alert');
+  if (!uid) { alertEl.innerHTML = '<div class="alert alert-error">請輸入 UID</div>'; return; }
+  try {
+    await db.collection('admins').doc(uid).set({ grantedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    alertEl.innerHTML = '<div class="alert alert-success">管理員授權成功</div>';
+    document.getElementById('admin-uid').value = '';
+    setTimeout(() => alertEl.innerHTML = '', 3000);
+  } catch(e) {
+    alertEl.innerHTML = `<div class="alert alert-error">授權失敗：${e.message}</div>`;
+  }
+}
+
+function doLogout() { auth.signOut().then(() => window.location.href = '../index.html'); }
+</script>
+</body>
+</html>

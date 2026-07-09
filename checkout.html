@@ -1,0 +1,415 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reyi-EP</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+.s-header{background:rgba(255,255,255,.88);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(210,210,215,.6);position:sticky;top:0;z-index:200}
+.s-header-inner{max-width:1280px;margin:auto;padding:.8rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem}
+.s-logo{font-size:1.35rem;font-weight:800;color:#1d1d1f;letter-spacing:-.04em;flex-shrink:0}
+.s-nav{display:flex;align-items:center;gap:.75rem}
+.s-nav a,.s-nav button{font-size:.85rem;color:#6e6e73;background:none;border:none;cursor:pointer;padding:.35rem .6rem;border-radius:8px;transition:color .15s,background .15s;white-space:nowrap;text-decoration:none;font-family:inherit}
+.s-nav a:hover,.s-nav button:hover{color:#1d1d1f;background:rgba(0,0,0,.04)}
+.checkout-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.checkout-grid-full{grid-column:1/-1}
+.checkout-addr-grid{display:grid;grid-template-columns:120px 1fr;gap:1rem}
+.checkout-addr-full{grid-column:1/-1}
+@media(max-width:640px){
+  .s-header-inner{padding:.65rem 1rem}
+  .checkout-grid{grid-template-columns:1fr}
+  .checkout-grid-full{grid-column:auto}
+  .checkout-addr-grid{grid-template-columns:1fr}
+  .checkout-addr-full{grid-column:auto}
+  #step1 .card{grid-column:auto!important}
+  .step-indicator{font-size:.75rem;gap:.3rem}
+}
+  </style>
+  <style>body{visibility:hidden}</style>
+  <script src="js/store-name-init.js"></script>
+</head>
+<body>
+
+<header class="s-header">
+  <div class="s-header-inner">
+    <a href="shop.html" class="s-logo store-name-el"></a>
+    <nav class="s-nav">
+      <a href="cart.html">← 返回購物車</a>
+    </nav>
+  </div>
+</header>
+
+<div class="container" style="max-width:800px">
+  <h1 class="page-title">結帳</h1>
+
+  <!-- 步驟指示 -->
+  <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:2rem;font-size:.85rem">
+    <span id="step-ind-1" style="font-weight:700;color:var(--primary)">① 填寫資料</span>
+    <span style="color:var(--border)">───</span>
+    <span id="step-ind-2" style="color:var(--muted)">② 確認訂單</span>
+    <span style="color:var(--border)">───</span>
+    <span id="step-ind-3" style="color:var(--muted)">③ 完成</span>
+  </div>
+
+  <!-- 步驟一：填寫資料 -->
+  <div id="step1">
+    <div class="checkout-grid" style="gap:1.5rem">
+      <div class="card checkout-grid-full">
+        <h3 style="font-weight:700;margin-bottom:1rem">聯絡資訊</h3>
+        <div class="checkout-grid" style="gap:1rem">
+          <div class="form-group">
+            <label class="form-label">收件人姓名</label>
+            <input id="recv-name" type="text" class="form-input" placeholder="姓名">
+          </div>
+          <div class="form-group">
+            <label class="form-label">聯絡電話</label>
+            <input id="recv-phone" type="tel" class="form-input" placeholder="0912345678" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">電子信箱（寄送訂單通知）</label>
+          <input id="recv-email" type="email" class="form-input" placeholder="example@email.com">
+        </div>
+      </div>
+
+      <div class="card checkout-grid-full">
+        <h3 style="font-weight:700;margin-bottom:1rem">取貨方式</h3>
+        <div style="display:flex;flex-direction:column;gap:.75rem" id="shipping-options"></div>
+      </div>
+
+      <!-- 超商店取設定 -->
+      <div class="card checkout-grid-full" id="cvs-card" style="display:none">
+        <h3 style="font-weight:700;margin-bottom:1rem">超商取貨資訊</h3>
+        <div class="checkout-grid" style="gap:1rem">
+          <div class="form-group">
+            <label class="form-label">超商品牌</label>
+            <select id="cvs-brand" class="form-select">
+              <option value="">請選擇</option>
+              <option value="7-11">7-ELEVEN</option>
+              <option value="familymart">全家</option>
+              <option value="hilife">萊爾富</option>
+              <option value="okmart">OK mart</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">門市名稱</label>
+            <input id="cvs-store-name" type="text" class="form-input" placeholder="例：台北信義門市">
+          </div>
+          <div class="form-group checkout-grid-full">
+            <label class="form-label">門市地址（選填）</label>
+            <input id="cvs-store-addr" type="text" class="form-input" placeholder="例：台北市信義區信義路五段7號">
+          </div>
+        </div>
+      </div>
+
+      <!-- 宅配地址 -->
+      <div class="card checkout-grid-full" id="home-card" style="display:none">
+        <h3 style="font-weight:700;margin-bottom:1rem">宅配地址</h3>
+        <div class="checkout-addr-grid" style="gap:1rem">
+          <div class="form-group">
+            <label class="form-label">郵遞區號</label>
+            <input id="addr-zip" type="text" class="form-input" placeholder="100" maxlength="6">
+          </div>
+          <div class="form-group">
+            <label class="form-label">縣市 / 區鄉鎮</label>
+            <input id="addr-city" type="text" class="form-input" placeholder="台北市信義區">
+          </div>
+          <div class="form-group checkout-addr-full">
+            <label class="form-label">詳細地址</label>
+            <input id="addr-detail" type="text" class="form-input" placeholder="XX路XX號XX樓">
+          </div>
+        </div>
+      </div>
+
+      <div class="card checkout-grid-full">
+        <h3 style="font-weight:700;margin-bottom:1rem">付款方式</h3>
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer;padding:.75rem;border:1.5px solid var(--border);border-radius:8px">
+            <input type="radio" name="payment" value="cod" checked onchange="setPayment('cod')">
+            <div><div style="font-weight:600">貨到付款</div><div style="font-size:.8rem;color:var(--muted)">收到貨品時以現金付款</div></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer;padding:.75rem;border:1.5px solid var(--border);border-radius:8px">
+            <input type="radio" name="payment" value="transfer" onchange="setPayment('transfer')">
+            <div><div style="font-weight:600">銀行轉帳</div><div style="font-size:.8rem;color:var(--muted)">下單後系統提供匯款帳號</div></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer;padding:.75rem;border:1.5px solid var(--border);border-radius:8px">
+            <input type="radio" name="payment" value="credit" onchange="setPayment('credit')">
+            <div><div style="font-weight:600">信用卡（第三方串接）</div><div style="font-size:.8rem;color:var(--muted)">TODO: IT 工程師請串接金流 API</div></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="card checkout-grid-full">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">備註</label>
+          <textarea id="order-note" class="form-textarea" placeholder="特殊需求或備註事項"></textarea>
+        </div>
+      </div>
+    </div>
+    <div id="step1-alert"></div>
+    <button class="btn btn-primary" style="margin-top:1.25rem;width:100%" onclick="goStep2()">下一步：確認訂單</button>
+  </div>
+
+  <!-- 步驟二：確認訂單 -->
+  <div id="step2" style="display:none">
+    <div class="card" style="margin-bottom:1rem">
+      <h3 style="font-weight:700;margin-bottom:1rem">訂單明細</h3>
+      <div id="confirm-items"></div>
+    </div>
+    <div class="card" style="margin-bottom:1rem">
+      <h3 style="font-weight:700;margin-bottom:1rem">配送與付款</h3>
+      <div id="confirm-info" style="font-size:.9rem;color:var(--muted);line-height:2"></div>
+    </div>
+    <div class="card summary-box" style="margin-bottom:1.5rem">
+      <div class="summary-row"><span>商品小計</span><span id="c-subtotal"></span></div>
+      <div class="summary-row"><span>運費</span><span id="c-shipping"></span></div>
+      <div class="summary-row"><span>折扣</span><span id="c-discount" style="color:var(--success)"></span></div>
+      <div class="summary-row total"><span>應付金額</span><span id="c-total"></span></div>
+    </div>
+    <div style="display:flex;gap:.75rem">
+      <button class="btn btn-outline" onclick="goStep1()">← 返回修改</button>
+      <button class="btn btn-primary" style="flex:1" onclick="submitOrder()" id="btn-submit">確認下單</button>
+    </div>
+  </div>
+
+  <!-- 步驟三：完成 -->
+  <div id="step3" style="display:none;text-align:center;padding:3rem 0">
+    <div style="font-size:4rem;margin-bottom:1rem">🎉</div>
+    <h2 style="font-weight:700;margin-bottom:.5rem">訂單已成立！</h2>
+    <p style="color:var(--muted);margin-bottom:.25rem">訂單編號：<strong id="order-id"></strong></p>
+    <p style="color:var(--muted);margin-bottom:2rem">我們將盡快為您處理，請注意信箱通知。</p>
+    <div style="display:flex;gap:1rem;justify-content:center">
+      <a href="member.html" class="btn btn-outline">查看訂單</a>
+      <a href="shop.html" class="btn btn-primary">繼續購物</a>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyByVQewloZcL4cMrPKxyZ5JlhaGS4Zep08",
+  authDomain: "reyi-ep.firebaseapp.com",
+  projectId: "reyi-ep",
+  storageBucket: "reyi-ep.firebasestorage.app",
+  messagingSenderId: "90799325656",
+  appId: "1:90799325656:web:df2ce64d86ef9c9060b2ad"
+};
+firebase.initializeApp(firebaseConfig);
+</script>
+  <script src="js/app-helpers.js"></script>
+<script src="js/cart.js"></script>
+<script>
+let currentUser = null;
+let shippingOptions = [];
+let selectedShipping = null;
+let selectedPayment = 'cod';
+const SHIPPING_FEE = 60;
+let couponDiscount = 0;
+
+auth.onAuthStateChanged(async user => {
+  document.body.style.visibility = 'visible';
+  if (!user) return window.location.href = 'index.html';
+  setCartUser(user.uid);
+  applyStoreName('');
+  currentUser = user;
+  if (!getCart().length) return window.location.href = 'cart.html';
+  // 預填信箱
+  const userDoc = await db.collection('users').doc(user.uid).get();
+  if (userDoc.exists) {
+    const d = userDoc.data();
+    document.getElementById('recv-name').value = d.name || '';
+    document.getElementById('recv-email').value = d.email || user.email || '';
+    document.getElementById('recv-phone').value = d.phone || user.phoneNumber || '';
+  }
+  // 優惠碼折扣
+  const c = sessionStorage.getItem('coupon');
+  if (c) couponDiscount = JSON.parse(c).discount || 0;
+  loadShippingOptions();
+});
+
+async function loadShippingOptions() {
+  try {
+    const snap = await db.collection('settings').doc('shipping').get();
+    shippingOptions = snap.exists ? (snap.data().options || []) : defaultShipping();
+  } catch { shippingOptions = defaultShipping(); }
+  renderShippingOptions();
+}
+
+function defaultShipping() {
+  return [
+    { id: 'cvs', label: '超商店取', fee: 60, type: 'cvs' },
+    { id: 'home', label: '宅配到府', fee: 100, type: 'home' }
+  ];
+}
+
+function renderShippingOptions() {
+  const container = document.getElementById('shipping-options');
+  if (!shippingOptions.length) {
+    container.innerHTML = '<p style="color:var(--muted)">暫無可用的取貨方式</p>';
+    return;
+  }
+  container.innerHTML = shippingOptions.map((opt, i) => `
+    <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer;padding:.75rem;border:1.5px solid var(--border);border-radius:8px">
+      <input type="radio" name="shipping" value="${escapeHtml(opt.id)}" ${i===0?'checked':''} data-sid="${escapeHtml(opt.id)}" onchange="selectShipping(this.dataset.sid)">
+      <div><div style="font-weight:600">${escapeHtml(opt.label)}</div><div style="font-size:.8rem;color:var(--muted)">運費 ${formatPrice(opt.fee)}</div></div>
+    </label>
+  `).join('');
+  selectShipping(shippingOptions[0].id);
+}
+
+function selectShipping(id) {
+  selectedShipping = shippingOptions.find(o => o.id === id);
+  document.getElementById('cvs-card').style.display = selectedShipping?.type === 'cvs' ? 'block' : 'none';
+  document.getElementById('home-card').style.display = selectedShipping?.type === 'home' ? 'block' : 'none';
+}
+
+function setPayment(val) { selectedPayment = val; }
+
+function goStep1() {
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('step2').style.display = 'none';
+  setStep(1);
+}
+
+function goStep2() {
+  const name = document.getElementById('recv-name').value.trim();
+  const phone = document.getElementById('recv-phone').value.trim();
+  const email = document.getElementById('recv-email').value.trim();
+  const alertEl = document.getElementById('step1-alert');
+  if (!name || !phone || !email) {
+    alertEl.innerHTML = '<div class="alert alert-error">請填寫完整聯絡資訊</div>'; return;
+  }
+  if (!/^\d{10}$/.test(phone)) {
+    alertEl.innerHTML = '<div class="alert alert-error">聯絡電話須為 10 碼數字</div>'; return;
+  }
+  if (!selectedShipping) {
+    alertEl.innerHTML = '<div class="alert alert-error">請選擇取貨方式</div>'; return;
+  }
+  if (selectedShipping.type === 'cvs') {
+    const brand = document.getElementById('cvs-brand').value;
+    const store = document.getElementById('cvs-store-name').value.trim();
+    if (!brand || !store) { alertEl.innerHTML = '<div class="alert alert-error">請填寫超商取貨資訊</div>'; return; }
+  }
+  if (selectedShipping.type === 'home') {
+    const city = document.getElementById('addr-city').value.trim();
+    const detail = document.getElementById('addr-detail').value.trim();
+    if (!city || !detail) { alertEl.innerHTML = '<div class="alert alert-error">請填寫宅配地址</div>'; return; }
+  }
+  alertEl.innerHTML = '';
+  renderConfirm();
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+  setStep(2);
+}
+
+function renderConfirm() {
+  const cart = getCart();
+  const subtotal = getCartTotal();
+  const fee = selectedShipping?.fee ?? SHIPPING_FEE;
+  const total = Math.max(0, subtotal + fee - couponDiscount);
+  document.getElementById('confirm-items').innerHTML = cart.map(i => {
+    const imgSrc = safeImgSrc(i.imageUrl);
+    return `
+    <div class="cart-item" style="padding:.6rem 0">
+      <div class="cart-item-img" style="width:48px;height:48px;font-size:1rem">
+        ${imgSrc ? `<img src="${imgSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">` : '📦'}
+      </div>
+      <div style="flex:1"><div class="cart-item-name">${escapeHtml(i.name)}</div><div class="cart-item-price">x${Number(i.qty)}</div></div>
+      <div style="font-weight:700">${formatPrice(i.price * i.qty)}</div>
+    </div>`;}).join('');
+  const shippingAddr = buildShippingAddr();
+  const paymentLabel = { cod:'貨到付款', transfer:'銀行轉帳', credit:'信用卡' }[selectedPayment] || selectedPayment;
+  // confirm-info 使用 textContent 逐一填入，避免 innerHTML XSS
+  const infoEl = document.getElementById('confirm-info');
+  infoEl.innerHTML = '';
+  [
+    `收件人：${document.getElementById('recv-name').value} / ${document.getElementById('recv-phone').value}`,
+    `取貨方式：${selectedShipping?.label || ''}`,
+    `地址：${shippingAddr}`,
+    `付款方式：${paymentLabel}`
+  ].forEach(text => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    infoEl.appendChild(div);
+  });
+  document.getElementById('c-subtotal').textContent = formatPrice(subtotal);
+  document.getElementById('c-shipping').textContent = formatPrice(fee);
+  document.getElementById('c-discount').textContent = `-${formatPrice(couponDiscount)}`;
+  document.getElementById('c-total').textContent = formatPrice(total);
+}
+
+function buildShippingAddr() {
+  if (selectedShipping?.type === 'cvs') {
+    const brand = document.getElementById('cvs-brand').value;
+    const name = document.getElementById('cvs-store-name').value;
+    const addr = document.getElementById('cvs-store-addr').value;
+    return `${brand} ${name} ${addr}`.trim();
+  }
+  return `${document.getElementById('addr-zip').value} ${document.getElementById('addr-city').value} ${document.getElementById('addr-detail').value}`.trim();
+}
+
+async function submitOrder() {
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true; btn.textContent = '處理中...';
+  try {
+    const cart = getCart();
+    const subtotal = getCartTotal();
+    const fee = selectedShipping?.fee ?? SHIPPING_FEE;
+    const total = Math.max(0, subtotal + fee - couponDiscount);
+    const couponData = sessionStorage.getItem('coupon') ? JSON.parse(sessionStorage.getItem('coupon')) : null;
+    const orderData = {
+      userId: currentUser.uid,
+      items: cart,
+      receiver: {
+        name: document.getElementById('recv-name').value.trim(),
+        phone: document.getElementById('recv-phone').value.trim(),
+        email: document.getElementById('recv-email').value.trim()
+      },
+      shipping: {
+        method: selectedShipping?.label,
+        type: selectedShipping?.type,
+        fee,
+        address: buildShippingAddr()
+      },
+      payment: { method: selectedPayment },
+      coupon: couponData,
+      note: document.getElementById('order-note').value.trim(),
+      subtotal, total,
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    const ref = await db.collection('orders').add(orderData);
+    // 更新庫存 (TODO: IT 工程師可改為 Cloud Function 確保原子性)
+    const batch = db.batch();
+    cart.forEach(item => {
+      const ref = db.collection('products').doc(item.id);
+      batch.update(ref, { stock: firebase.firestore.FieldValue.increment(-item.qty) });
+    });
+    await batch.commit();
+    clearCart();
+    sessionStorage.removeItem('coupon');
+    document.getElementById('order-id').textContent = ref.id.slice(0, 8).toUpperCase();
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step3').style.display = 'block';
+    setStep(3);
+  } catch(e) {
+    alert('下單失敗：' + e.message);
+    btn.disabled = false; btn.textContent = '確認下單';
+  }
+}
+
+function setStep(n) {
+  [1,2,3].forEach(i => {
+    const el = document.getElementById(`step-ind-${i}`);
+    el.style.color = i === n ? 'var(--primary)' : 'var(--muted)';
+    el.style.fontWeight = i === n ? '700' : '400';
+  });
+}
+</script>
+</body>
+</html>

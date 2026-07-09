@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "project": "KrSu-wem",
+  "note": "所有資料存取皆透過 Firebase SDK，以下為 Firestore 文件格式定義",
+  "collections": {
+    "products": {
+      "create": {
+        "request": {
+          "name": "string (required)",
+          "category": "string",
+          "price": "number (required)",
+          "salePrice": "number | null",
+          "stock": "number (required)",
+          "imageUrl": "string",
+          "description": "string",
+          "active": "boolean"
+        },
+        "response": { "id": "string (auto-generated)" }
+      },
+      "list": {
+        "query": "where active == true, orderBy createdAt desc",
+        "response": [{ "id": "string", "name": "string", "price": "number", "salePrice": "number|null", "stock": "number", "category": "string", "imageUrl": "string", "active": "boolean" }]
+      }
+    },
+    "orders": {
+      "create": {
+        "request": {
+          "userId": "string",
+          "items": [{ "id": "string", "name": "string", "price": "number", "qty": "number" }],
+          "receiver": { "name": "string", "phone": "string", "email": "string" },
+          "shipping": { "method": "string", "type": "cvs|home|other", "fee": "number", "address": "string" },
+          "payment": { "method": "cod|transfer|credit" },
+          "coupon": { "code": "string", "discount": "number" },
+          "note": "string",
+          "subtotal": "number",
+          "total": "number",
+          "status": "pending"
+        },
+        "response": { "id": "string (auto-generated)" }
+      },
+      "updateStatus": {
+        "request": { "status": "pending|processing|shipped|completed|cancelled" },
+        "note": "僅限管理員執行"
+      }
+    },
+    "coupons": {
+      "create": {
+        "documentId": "優惠碼（大寫英數字）",
+        "request": {
+          "type": "fixed|percent",
+          "value": "number",
+          "minAmount": "number (0 = 不限)",
+          "active": "boolean"
+        }
+      },
+      "validate": {
+        "query": "get /coupons/{code}",
+        "checks": ["active == true", "minAmount <= cartTotal"],
+        "response": { "type": "string", "value": "number", "minAmount": "number" }
+      }
+    },
+    "settings/shipping": {
+      "structure": {
+        "options": [{ "id": "string", "label": "string", "type": "cvs|home|other", "fee": "number", "enabled": "boolean" }]
+      }
+    },
+    "settings/banners": {
+      "structure": {
+        "items": [{ "text": "string" }]
+      }
+    }
+  },
+  "todoForIT": [
+    {
+      "feature": "信用卡金流",
+      "file": "checkout.html",
+      "location": "付款方式 credit 選項",
+      "note": "串接綠界、藍新或其他金流 API，替換 TODO 區塊"
+    },
+    {
+      "feature": "超商選店地圖",
+      "file": "checkout.html",
+      "location": "cvs-card 超商取貨區塊",
+      "note": "串接各超商物流 API 取得實際門市列表"
+    },
+    {
+      "feature": "訂單庫存原子性",
+      "file": "checkout.html > submitOrder()",
+      "note": "目前使用 batch.update，建議改為 Cloud Functions Transaction 確保一致性"
+    },
+    {
+      "feature": "訂單通知 Email",
+      "note": "使用 Firebase Extension: Trigger Email，或串接 SendGrid / Mailgun"
+    }
+  ]
+}
