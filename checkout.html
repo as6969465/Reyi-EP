@@ -97,7 +97,7 @@ firebase.initializeApp(firebaseConfig);
 </script>
 <script src="js/app-helpers.js"></script>
 <script src="js/cart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <script>
 let currentUser = null;
 let empInfo = null;
@@ -207,9 +207,14 @@ function showDone(orderId) {
   document.getElementById('order-id-display').textContent = orderId.slice(0, 8).toUpperCase();
   document.getElementById('qr-order-short').textContent = 'ORDER ' + orderId.slice(0, 8).toUpperCase();
   const qrUrl = window.location.origin + '/admin/order-detail.html?id=' + orderId;
-  QRCode.toDataURL(qrUrl, { width: 220, margin: 1, color: { dark: '#1d1d1f', light: '#ffffff' } })
-    .then(url => { document.getElementById('qr-img').src = url; })
-    .catch(e => { document.getElementById('qr-img').alt = 'QR 碼產生失敗：' + e.message; });
+  try {
+    const qr = qrcode(0, 'M');
+    qr.addData(qrUrl);
+    qr.make();
+    document.getElementById('qr-img').src = qr.createDataURL(5, 0);
+  } catch(e) {
+    document.getElementById('qr-img').alt = 'QR 碼產生失敗：' + e.message;
+  }
 }
 </script>
 </body>
