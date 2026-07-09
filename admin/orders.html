@@ -56,6 +56,10 @@
   <div class="main-header">
     <h1 style="font-size:1.1rem;font-weight:700">訂單管理</h1>
     <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+      <a href="order-detail.html" class="btn btn-outline btn-sm" style="display:flex;align-items:center;gap:.4rem">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h.01M14 17h.01M17 14h.01M17 17h.01M20 14h.01M20 17h.01M17 20h.01M20 20h.01"/></svg>
+        掃碼查詢
+      </a>
       <input id="search" type="text" class="form-input" placeholder="搜尋訂單編號/收件人..." style="width:200px" oninput="renderTable()">
       <select id="filter-status" class="form-select" style="width:auto" onchange="renderTable()">
         <option value="">所有狀態</option>

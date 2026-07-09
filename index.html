@@ -84,33 +84,37 @@ async function doLogin() {
   if (!empId) return showAlert('請輸入員工編號');
   const btn = document.getElementById('btn-login');
   btn.disabled = true; btn.textContent = '登入中...';
+  const email = empId + '@reyi-ep.local';
+  const password = 'Reyi@' + empId;
   try {
-    const email = empId + '@reyi-ep.local';
-    const password = 'Reyi@' + empId;
-    // 先確認員工在名冊內且啟用
-    const empDoc = await db.collection('employees').doc(empId).get();
-    if (!empDoc.exists) {
-      showAlert('員工編號不存在，請聯絡管理員');
-      btn.disabled = false; btn.textContent = '登入';
-      return;
-    }
-    if (empDoc.data().isActive === false) {
-      showAlert('您的帳號已停用，請聯絡管理員');
-      btn.disabled = false; btn.textContent = '登入';
-      return;
-    }
-    // 嘗試登入；若帳號尚未建立則自動建立
     let result;
     try {
       result = await auth.signInWithEmailAndPassword(email, password);
     } catch (e) {
       if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
+        // 帳號不存在，先建立再驗證員工身份
         result = await auth.createUserWithEmailAndPassword(email, password);
-        await result.user.updateProfile({ displayName: empDoc.data().name || empId });
-        await db.collection('employees').doc(empId).update({ uid: result.user.uid });
+        const empCheck = await db.collection('employees').doc(empId).get();
+        if (!empCheck.exists || empCheck.data().isActive === false) {
+          await result.user.delete();
+          await auth.signOut();
+          showAlert(empCheck.exists ? '您的帳號已停用，請聯絡管理員' : '員工編號不存在，請聯絡管理員');
+          btn.disabled = false; btn.textContent = '登入';
+          return;
+        }
+        await result.user.updateProfile({ displayName: empCheck.data().name || empId });
+        await db.collection('employees').doc(empId).update({ uid: result.user.uid }).catch(() => {});
       } else {
         throw e;
       }
+    }
+    // 已有帳號：驗證員工狀態
+    const empDoc = await db.collection('employees').doc(empId).get();
+    if (!empDoc.exists || empDoc.data().isActive === false) {
+      await auth.signOut();
+      showAlert(empDoc.exists ? '您的帳號已停用，請聯絡管理員' : '員工編號不存在，請聯絡管理員');
+      btn.disabled = false; btn.textContent = '登入';
+      return;
     }
     // 記錄登入
     try {

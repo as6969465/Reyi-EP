@@ -41,6 +41,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // 員工名冊：公開可讀（登入流程需要），管理員可寫
+    match /employees/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // 系統設定：所有人可讀，管理員可寫
     match /settings/{doc} {
       allow read: if true;

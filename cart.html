@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
@@ -16,7 +16,7 @@
 .s-cart-count{background:#ff3b30;color:#fff;font-size:.64rem;font-weight:700;border-radius:99px;padding:1px 5px;min-width:16px;text-align:center;display:inline-block}
 .s-btn-login{background:#1d1d1f!important;color:#fff!important;border-radius:980px!important;padding:.38rem 1.1rem!important;font-weight:600!important}
 .s-btn-login:hover{opacity:.85!important}
-.cart-layout{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start}
+.cart-layout{display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start}
 @media(max-width:768px){
   .cart-layout{grid-template-columns:1fr}
   .s-header-inner{padding:.65rem 1rem}
@@ -37,7 +37,7 @@
       <a href="shop.html">繼續購物</a>
       <a href="member.html" id="nav-member" style="display:none">👤 <span id="nav-username">會員</span></a>
       <button onclick="doLogout()" id="nav-logout" style="display:none">登出</button>
-      <a href="index.html" id="nav-login" class="s-btn-login">登入 / 註冊</a>
+      <a href="index.html" id="nav-login" class="s-btn-login">登入</a>
     </nav>
   </div>
 </header>
@@ -45,29 +45,16 @@
 <div class="container">
   <h1 class="page-title">購物車</h1>
   <div class="cart-layout" id="cart-layout">
-    <!-- 商品清單 -->
     <div class="card">
       <div id="cart-items"></div>
     </div>
-    <!-- 金額摘要 -->
     <div>
       <div class="card" id="summary-card">
         <h3 style="font-weight:700;margin-bottom:1rem">訂單摘要</h3>
         <div class="summary-box">
-          <div class="summary-row"><span>小計</span><span id="subtotal">NT$ 0</span></div>
-          <div class="summary-row"><span>運費</span><span id="shipping-fee">NT$ 60</span></div>
-          <div class="summary-row"><span>折扣</span><span id="discount-amount" style="color:var(--success)">-NT$ 0</span></div>
-          <div class="summary-row total"><span>合計</span><span id="total-price">NT$ 0</span></div>
+          <div class="summary-row total"><span>商品合計</span><span id="total-price">NT$ 0</span></div>
         </div>
-        <div class="form-group" style="margin-top:1rem">
-          <label class="form-label">優惠碼</label>
-          <div style="display:flex;gap:.5rem">
-            <input id="coupon-input" type="text" class="form-input" placeholder="輸入優惠碼">
-            <button class="btn btn-outline" onclick="applyCoupon()">套用</button>
-          </div>
-          <span id="coupon-msg" class="form-hint"></span>
-        </div>
-        <button class="btn btn-primary btn-full" id="btn-checkout" onclick="goCheckout()">前往結帳</button>
+        <button class="btn btn-primary btn-full" style="margin-top:1.25rem" id="btn-checkout" onclick="goCheckout()">前往結帳</button>
       </div>
     </div>
   </div>
@@ -87,12 +74,9 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 </script>
-  <script src="js/app-helpers.js"></script>
+<script src="js/app-helpers.js"></script>
 <script src="js/cart.js"></script>
 <script>
-let appliedDiscount = 0;
-const SHIPPING = 60;
-
 auth.onAuthStateChanged(user => {
   document.body.style.visibility = 'visible';
   if (user) {
@@ -175,36 +159,7 @@ function removeItemByIdx(idx) {
 }
 
 function updateSummary() {
-  const subtotal = getCartTotal();
-  const total = subtotal + SHIPPING - appliedDiscount;
-  document.getElementById('subtotal').textContent = formatPrice(subtotal);
-  document.getElementById('shipping-fee').textContent = formatPrice(SHIPPING);
-  document.getElementById('discount-amount').textContent = `-${formatPrice(appliedDiscount)}`;
-  document.getElementById('total-price').textContent = formatPrice(Math.max(0, total));
-}
-
-async function applyCoupon() {
-  const code = document.getElementById('coupon-input').value.trim().toUpperCase();
-  const msg = document.getElementById('coupon-msg');
-  if (!code) return;
-  try {
-    const snap = await db.collection('coupons').doc(code).get();
-    if (!snap.exists) { msg.style.color = 'var(--danger)'; msg.textContent = '優惠碼不存在'; return; }
-    const c = snap.data();
-    if (!c.active) { msg.style.color = 'var(--danger)'; msg.textContent = '此優惠碼已失效'; return; }
-    if (c.minAmount && getCartTotal() < c.minAmount) {
-      msg.style.color = 'var(--danger)';
-      msg.textContent = `消費滿 ${formatPrice(c.minAmount)} 才可使用`;
-      return;
-    }
-    appliedDiscount = c.type === 'percent' ? Math.round(getCartTotal() * c.value / 100) : (c.value || 0);
-    msg.style.color = 'var(--success)';
-    msg.textContent = `優惠碼套用成功，折扣 ${formatPrice(appliedDiscount)}`;
-    sessionStorage.setItem('coupon', JSON.stringify({ code, discount: appliedDiscount }));
-    updateSummary();
-  } catch(e) {
-    msg.style.color = 'var(--danger)'; msg.textContent = '套用失敗：' + e.message;
-  }
+  document.getElementById('total-price').textContent = formatPrice(getCartTotal());
 }
 
 function goCheckout() {

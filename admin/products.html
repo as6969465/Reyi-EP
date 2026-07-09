@@ -31,13 +31,10 @@
     .img-thumb-del { position:absolute; top:2px; right:2px; width:18px; height:18px; border-radius:50%; background:rgba(0,0,0,.55); color:#fff; border:none; cursor:pointer; font-size:.7rem; display:flex; align-items:center; justify-content:center; }
     .img-thumb-primary { position:absolute; bottom:2px; left:2px; font-size:.58rem; background:rgba(0,102,204,.85); color:#fff; border-radius:4px; padding:1px 4px; font-weight:700; }
 
-    .variant-row { display:grid; grid-template-columns:1.4fr 80px 80px 70px 44px auto; gap:.45rem; align-items:center; background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:.55rem .7rem; }
+    .variant-row { display:grid; grid-template-columns:1.4fr 80px 80px 70px auto; gap:.45rem; align-items:center; background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:.55rem .7rem; }
     .variant-row .form-input { padding:.45rem .6rem; font-size:.83rem; }
     .variant-row .col-label { font-size:.72rem; color:var(--muted); text-align:center; }
-    .variant-img-btn { width:40px; height:40px; border-radius:8px; border:1.5px dashed var(--border); background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.1rem; overflow:hidden; flex-shrink:0; transition:border-color .15s; }
-    .variant-img-btn:hover { border-color:var(--accent); }
-    .variant-img-btn img { width:100%; height:100%; object-fit:cover; }
-    .variant-headers { display:grid; grid-template-columns:1.4fr 80px 80px 70px 44px auto; gap:.45rem; padding:0 .7rem; margin-bottom:.2rem; }
+    .variant-headers { display:grid; grid-template-columns:1.4fr 80px 80px 70px auto; gap:.45rem; padding:0 .7rem; margin-bottom:.2rem; }
   </style>
   <script src="../js/store-name-init.js"></script>
 </head>
@@ -127,28 +124,15 @@
         <input id="p-stock" type="number" class="form-input" min="0">
       </div>
 
-      <!-- 商品圖片（多張）-->
+      <!-- 商品圖片（網址）-->
       <div class="form-group" style="grid-column:1/-1">
-        <label class="form-label">商品圖片（可上傳多張）</label>
+        <label class="form-label">商品圖片</label>
         <div id="images-preview-area" style="display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:.75rem"></div>
-        <div id="upload-zone" onclick="document.getElementById('p-img-file').click()"
-          style="border:2px dashed var(--border);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;transition:border-color .2s;background:#fafafa">
-          <div id="upload-placeholder">
-            <div style="font-size:1.5rem;margin-bottom:.3rem">🖼️</div>
-            <div style="font-size:.85rem;color:var(--muted)">點擊上傳圖片（可多次新增），自動壓縮至 150KB</div>
-            <div style="font-size:.75rem;color:#94a3b8;margin-top:.2rem">支援 JPG、PNG、WebP</div>
-          </div>
-          <div id="upload-progress" style="display:none;padding:.5rem 0">
-            <div class="spinner" style="margin:auto"></div>
-            <div id="upload-status" style="font-size:.82rem;color:var(--muted);margin-top:.5rem">壓縮中...</div>
-          </div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <input id="p-img-url" type="text" class="form-input" placeholder="貼上圖片網址 https://...">
+          <button type="button" class="btn btn-outline btn-sm" onclick="addImageFromUrl()" style="white-space:nowrap">加入</button>
         </div>
-        <input id="p-img-file" type="file" accept="image/*" multiple style="display:none" onchange="handleImageUpload(this)">
-        <div style="display:flex;align-items:center;gap:.5rem;margin-top:.5rem">
-          <span style="font-size:.8rem;color:var(--muted)">或貼上網址：</span>
-          <input id="p-img-url" type="text" class="form-input" placeholder="https://..." style="flex:1;font-size:.85rem">
-          <button type="button" class="btn btn-outline btn-sm" onclick="addImageFromUrl()">加入</button>
-        </div>
+        <p style="font-size:.76rem;color:var(--muted);margin-top:.4rem">將圖片上傳至 Google 相簿、Imgur 等免費圖床後，貼上圖片網址即可。</p>
       </div>
 
       <!-- 商品說明 -->
@@ -169,8 +153,7 @@
           <span class="col-label">原價</span>
           <span class="col-label">特價</span>
           <span class="col-label">庫存</span>
-          <span class="col-label">圖片</span>
-          <span></span>
+            <span></span>
         </div>
         <div id="variants-list" style="display:flex;flex-direction:column;gap:.45rem">
           <p id="variants-empty" style="font-size:.85rem;color:var(--muted);padding:.3rem 0">尚未新增樣式。若商品有不同規格（如顏色/尺寸），可按上方按鈕新增。</p>
@@ -212,7 +195,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyByVQewloZcL4cMrPKxyZ5JlhaGS4Zep08",
@@ -295,35 +277,6 @@ async function deleteCategory(idx) {
   renderCatList();
 }
 
-// ── 圖片壓縮並上傳到 Firebase Storage ─────────────────────
-async function compressAndUpload(file) {
-  const blob = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = e => {
-      const img = new Image();
-      img.onerror = reject;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let { width, height } = img;
-        const MAX_DIM = 1000;
-        if (width > MAX_DIM || height > MAX_DIM) {
-          if (width > height) { height = Math.round(height * MAX_DIM / width); width = MAX_DIM; }
-          else { width = Math.round(width * MAX_DIM / height); height = MAX_DIM; }
-        }
-        canvas.width = width; canvas.height = height;
-        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        canvas.toBlob(b => b ? resolve(b) : reject(new Error('壓縮失敗')), 'image/jpeg', 0.82);
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-  const filename = `products/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`;
-  const ref = storage.ref(filename);
-  await ref.put(blob, { contentType: 'image/jpeg' });
-  return await ref.getDownloadURL();
-}
 
 // ── 商品圖片管理（多張）────────────────────────────────────
 function renderImagesPreview() {
@@ -345,36 +298,6 @@ function removeImage(idx) {
   renderImagesPreview();
 }
 
-async function handleImageUpload(input) {
-  const files = Array.from(input.files);
-  if (!files.length) return;
-  const zone = document.getElementById('upload-zone');
-  const progress = document.getElementById('upload-progress');
-  const status = document.getElementById('upload-status');
-  const placeholder = document.getElementById('upload-placeholder');
-
-  placeholder.style.display = 'none';
-  progress.style.display = 'block';
-  zone.style.borderColor = 'var(--primary)';
-
-  try {
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const origKB = (file.size / 1024).toFixed(0);
-      status.textContent = `上傳中... (${i + 1}/${files.length}，原始 ${origKB}KB)`;
-      const url = await compressAndUpload(file);
-      productImages.push(url);
-    }
-    renderImagesPreview();
-    input.value = '';
-  } catch(e) {
-    document.getElementById('modal-alert').innerHTML = `<div class="alert alert-error">圖片處理失敗：${escapeHtml(e.message)}</div>`;
-  } finally {
-    progress.style.display = 'none';
-    placeholder.style.display = 'block';
-    zone.style.borderColor = 'var(--border)';
-  }
-}
 
 function addImageFromUrl() {
   const input = document.getElementById('p-img-url');
@@ -417,17 +340,9 @@ function renderVariantsList() {
         data-idx="${idx}" data-field="salePrice" onchange="updateVariantField(+this.dataset.idx,this.dataset.field,this.value===''?null:+this.value)">
       <input type="number" class="form-input" placeholder="庫存 *" value="${v.stock!=null?v.stock:''}" min="0"
         data-idx="${idx}" data-field="stock" onchange="updateVariantField(+this.dataset.idx,this.dataset.field,+this.value)">
-      <div class="variant-img-btn" data-vidx="${idx}" onclick="document.getElementById('v-img-${idx}').click()" title="設定樣式圖片">
-        ${v.imageUrl ? `<img data-vimg="${idx}">` : '🖼️'}
-      </div>
-      <input id="v-img-${idx}" type="file" accept="image/*" style="display:none" data-vidx="${idx}" onchange="handleVariantImageUpload(this,+this.dataset.vidx)">
       <button type="button" data-del="${idx}" onclick="removeVariant(+this.dataset.del)"
         style="color:var(--danger);border:1.5px solid var(--danger);border-radius:8px;padding:.3rem .55rem;font-size:.8rem;background:none;cursor:pointer;font-weight:700;white-space:nowrap">✕</button>`;
     list.appendChild(row);
-    if (v.imageUrl) {
-      const vimg = row.querySelector(`img[data-vimg="${idx}"]`);
-      if (vimg) vimg.src = safeImgSrc(v.imageUrl) || '';
-    }
   });
 }
 
@@ -445,18 +360,6 @@ function updateVariantField(idx, field, value) {
   if (productVariants[idx] !== undefined) productVariants[idx][field] = value;
 }
 
-async function handleVariantImageUpload(input, idx) {
-  const file = input.files[0];
-  if (!file) return;
-  try {
-    const url = await compressAndUpload(file);
-    productVariants[idx].imageUrl = url;
-    renderVariantsList();
-  } catch(e) {
-    document.getElementById('modal-alert').innerHTML = `<div class="alert alert-error">樣式圖片處理失敗：${escapeHtml(e.message)}</div>`;
-  }
-  input.value = '';
-}
 
 // ── Auth ──────────────────────────────────────────────────
 auth.onAuthStateChanged(async user => {
@@ -541,10 +444,6 @@ function resetFormUI() {
   renderImagesPreview();
   renderVariantsList();
   document.getElementById('p-img-url').value = '';
-  document.getElementById('p-img-file').value = '';
-  document.getElementById('upload-progress').style.display = 'none';
-  document.getElementById('upload-placeholder').style.display = 'block';
-  document.getElementById('upload-zone').style.borderColor = 'var(--border)';
 }
 
 function openModal() {
@@ -648,10 +547,14 @@ async function saveProduct() {
 }
 
 async function toggleActive(id, active) {
-  await db.collection('products').doc(id).update({ active });
-  const idx = products.findIndex(p => p.id === id);
-  if (idx > -1) products[idx].active = active;
-  renderTable();
+  try {
+    await db.collection('products').doc(id).update({ active });
+    const idx = products.findIndex(p => p.id === id);
+    if (idx > -1) products[idx].active = active;
+    renderTable();
+  } catch(e) {
+    alert('更新失敗：' + e.message);
+  }
 }
 
 function doLogout() { auth.signOut().then(() => window.location.href = '../index.html'); }

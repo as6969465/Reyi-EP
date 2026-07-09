@@ -19,8 +19,8 @@ jobs:
           channelId: live
           projectId: reyi-ep
 
-      - name: Deploy Firestore Rules
+      - name: Deploy Firestore & Storage Rules
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_REYI_EP }}' > /tmp/sa.json
           export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
-          npx firebase-tools@latest deploy --only firestore:rules --project reyi-ep
+          npx firebase-tools@latest deploy --only firestore:rules,storage --project reyi-ep
