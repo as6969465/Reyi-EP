@@ -80,7 +80,7 @@ function showAlert(msg, type = 'error') {
 }
 
 async function doLogin() {
-  const empId = document.getElementById('emp-id').value.trim();
+  const empId = document.getElementById('emp-id').value.trim().toUpperCase();
   if (!empId) return showAlert('請輸入員工編號');
   const btn = document.getElementById('btn-login');
   btn.disabled = true; btn.textContent = '登入中...';

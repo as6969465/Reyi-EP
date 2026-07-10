@@ -117,7 +117,7 @@ auth.onAuthStateChanged(async user => {
 });
 
 async function loadEmpInfo() {
-  const empId = currentUser.email.replace('@reyi-ep.local', '');
+  const empId = currentUser.email.replace('@reyi-ep.local', '').toUpperCase();
   try {
     const doc = await db.collection('employees').doc(empId).get();
     empInfo = { empId, name: empId, vendor: '', dept: '' };
