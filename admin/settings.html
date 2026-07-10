@@ -70,46 +70,6 @@
       <div id="store-alert" style="margin-top:.75rem"></div>
     </div>
 
-    <!-- 匯款帳號 -->
-    <div class="card">
-      <h3 style="font-weight:700;margin-bottom:.5rem">🏦 銀行匯款帳號</h3>
-      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">顧客選擇「銀行轉帳」付款後，可在「我的訂單」查看此帳號。</p>
-      <div style="display:flex;flex-direction:column;gap:.75rem;max-width:400px">
-        <div>
-          <label class="form-label">銀行名稱</label>
-          <input id="bank-name" type="text" class="form-input" placeholder="例：台灣銀行 012">
-        </div>
-        <div>
-          <label class="form-label">戶名</label>
-          <input id="bank-holder" type="text" class="form-input" placeholder="例：王小明">
-        </div>
-        <div>
-          <label class="form-label">帳號</label>
-          <input id="bank-account" type="text" class="form-input" placeholder="例：012-123456789012">
-        </div>
-        <button class="btn btn-primary" style="width:fit-content" onclick="saveBankAccount()">儲存</button>
-      </div>
-      <div id="bank-alert" style="margin-top:.75rem"></div>
-    </div>
-
-    <!-- 社群連結 -->
-    <div class="card">
-      <h3 style="font-weight:700;margin-bottom:.5rem">🔗 社群連結</h3>
-      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">設定後，前台導覽列會顯示 LINE 與 Instagram 圖示。留空則不顯示。</p>
-      <div style="display:flex;flex-direction:column;gap:.75rem;max-width:400px">
-        <div>
-          <label class="form-label">LINE 網址</label>
-          <input id="social-line" type="url" class="form-input" placeholder="例：https://line.me/ti/p/~yourId">
-        </div>
-        <div>
-          <label class="form-label">Instagram 網址</label>
-          <input id="social-instagram" type="url" class="form-input" placeholder="例：https://www.instagram.com/yourAccount">
-        </div>
-        <button class="btn btn-primary" style="width:fit-content" onclick="saveSocialLinks()">儲存</button>
-      </div>
-      <div id="social-alert" style="margin-top:.75rem"></div>
-    </div>
-
     <!-- 公告橫幅 -->
     <div class="card">
       <h3 style="font-weight:700;margin-bottom:1rem">📢 公告橫幅</h3>
@@ -195,46 +155,7 @@ async function loadGeneral() {
     if (!snap.exists) return;
     const d = snap.data();
     if (d.storeName) document.getElementById('store-name').value = d.storeName;
-    if (d.bankAccount) {
-      document.getElementById('bank-name').value    = d.bankAccount.bankName    || '';
-      document.getElementById('bank-holder').value  = d.bankAccount.accountName || '';
-      document.getElementById('bank-account').value = d.bankAccount.accountNo   || '';
-    }
-    if (d.socialLinks) {
-      document.getElementById('social-line').value      = d.socialLinks.line      || '';
-      document.getElementById('social-instagram').value = d.socialLinks.instagram || '';
-    }
   } catch(e) {}
-}
-
-async function saveSocialLinks() {
-  const line      = document.getElementById('social-line').value.trim();
-  const instagram = document.getElementById('social-instagram').value.trim();
-  const alertEl   = document.getElementById('social-alert');
-  try {
-    await db.collection('settings').doc('general').set({ socialLinks: { line, instagram } }, { merge: true });
-    alertEl.innerHTML = '<div class="alert alert-success">社群連結已儲存 ✓</div>';
-    setTimeout(() => alertEl.innerHTML = '', 3000);
-  } catch(e) {
-    alertEl.innerHTML = `<div class="alert alert-error">儲存失敗：${escapeHtml(e.message)}</div>`;
-  }
-}
-
-async function saveBankAccount() {
-  const bankName    = document.getElementById('bank-name').value.trim();
-  const accountName = document.getElementById('bank-holder').value.trim();
-  const accountNo   = document.getElementById('bank-account').value.trim();
-  const alertEl     = document.getElementById('bank-alert');
-  if (!bankName || !accountName || !accountNo) {
-    alertEl.innerHTML = '<div class="alert alert-error">請填寫完整匯款資訊</div>'; return;
-  }
-  try {
-    await db.collection('settings').doc('general').set({ bankAccount: { bankName, accountName, accountNo } }, { merge: true });
-    alertEl.innerHTML = '<div class="alert alert-success">匯款帳號已儲存 ✓</div>';
-    setTimeout(() => alertEl.innerHTML = '', 3000);
-  } catch(e) {
-    alertEl.innerHTML = `<div class="alert alert-error">儲存失敗：${escapeHtml(e.message)}</div>`;
-  }
 }
 
 async function saveStoreName() {

@@ -113,11 +113,6 @@ let allOrders = [];
 const STATUS_LABEL = { pending:'待取貨付款', paid:'已取貨付款', cancelled:'取消訂單' };
 const STATUS_BADGE = { pending:'badge-warn', paid:'badge-success', cancelled:'badge-danger' };
 
-let _bankAccount = null;
-db.collection('settings').doc('general').get().then(snap => {
-  if (snap.exists && snap.data().bankAccount) _bankAccount = snap.data().bankAccount;
-}).catch(() => {});
-
 loadBanners();
 
 auth.onAuthStateChanged(async user => {
