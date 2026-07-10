@@ -83,6 +83,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -174,7 +175,14 @@ function renderOrders(status) {
 function openOrderModal(id) {
   const o = allOrders.find(x => x.id === id);
   if (!o) return;
-  const PAY_LABEL = { cod:'貨到付款', transfer:'銀行轉帳', credit:'信用卡' };
+  const qrSection = o.status === 'pending' ? `
+    <div style="margin-top:1.25rem;text-align:center">
+      <div style="font-size:.82rem;color:var(--muted);margin-bottom:.75rem">出示 QR 碼給管理員掃描確認付款</div>
+      <div style="display:inline-block;background:#fff;border:1px solid var(--border);border-radius:12px;padding:1rem;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+        <img id="modal-qr-img" style="width:180px;height:180px;display:block">
+        <div style="font-size:.72rem;color:var(--muted);margin-top:.5rem;letter-spacing:.04em">ORDER ${escapeHtml(o.id.slice(0,8).toUpperCase())}</div>
+      </div>
+    </div>` : '';
   document.getElementById('order-detail-content').innerHTML = `
     <div style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">
       訂單編號：${escapeHtml(o.id)} ｜ ${formatDate(o.createdAt)}
@@ -191,8 +199,17 @@ function openOrderModal(id) {
     </div>
     <div style="margin-top:1rem">
       <span class="badge ${STATUS_BADGE[o.status]||'badge-gray'}" style="font-size:.9rem">${STATUS_LABEL[o.status]||escapeHtml(o.status)}</span>
-    </div>`;
+    </div>
+    ${qrSection}`;
   document.getElementById('order-modal').style.display = 'flex';
+  if (o.status === 'pending') {
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData(window.location.origin + '/admin/order-detail.html?id=' + o.id);
+      qr.make();
+      document.getElementById('modal-qr-img').src = qr.createDataURL(4, 0);
+    } catch(e) {}
+  }
 }
 
 function closeOrderModal() { document.getElementById('order-modal').style.display = 'none'; }
