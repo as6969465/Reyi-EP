@@ -53,13 +53,20 @@
 </aside>
 
 <div class="main">
+  <!-- 條碼槍掃碼列 -->
+  <div style="background:#f0f7ff;border-bottom:1px solid #b8d4f5;padding:.65rem 1.5rem;display:flex;align-items:center;gap:.75rem">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h.01M14 17h.01M17 14h.01M17 17h.01M20 14h.01M20 17h.01M17 20h.01M20 20h.01"/></svg>
+    <span style="font-size:.85rem;font-weight:600;color:#0066cc;white-space:nowrap">條碼掃碼</span>
+    <input id="barcode-input" type="text" class="form-input"
+      placeholder="請掃描訂單 QR 碼…"
+      style="flex:1;max-width:420px;font-size:.9rem;border-color:#b8d4f5;background:#fff"
+      autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <span id="barcode-hint" style="font-size:.78rem;color:#0066cc"></span>
+  </div>
+
   <div class="main-header">
     <h1 style="font-size:1.1rem;font-weight:700">訂單管理</h1>
     <div style="display:flex;gap:.75rem;flex-wrap:wrap">
-      <a href="order-detail.html" class="btn btn-outline btn-sm" style="display:flex;align-items:center;gap:.4rem">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h.01M14 17h.01M17 14h.01M17 17h.01M20 14h.01M20 17h.01M17 20h.01M20 20h.01"/></svg>
-        掃碼查詢
-      </a>
       <input id="search" type="text" class="form-input" placeholder="搜尋訂單編號/收件人..." style="width:200px" oninput="renderTable()">
       <select id="filter-status" class="form-select" style="width:auto" onchange="renderTable()">
         <option value="">所有狀態</option>
@@ -272,6 +279,57 @@ async function deleteOrder(id) {
 
 function closeModal() { document.getElementById('order-modal').style.display = 'none'; }
 function doLogout() { auth.signOut().then(() => window.location.href = '../index.html'); }
+
+// ── 條碼槍掃碼 ────────────────────────────────────────────
+(function() {
+  const input = document.getElementById('barcode-input');
+  const hint  = document.getElementById('barcode-hint');
+  let debounce = null;
+
+  input.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    processBarcode(input.value.trim());
+  });
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounce);
+    hint.textContent = '';
+    const val = input.value.trim();
+    if (!val) return;
+    debounce = setTimeout(() => {
+      const id = extractOrderId(val);
+      if (id) hint.textContent = '按 Enter 開啟訂單…';
+    }, 200);
+  });
+
+  function extractOrderId(val) {
+    try {
+      const url = new URL(val);
+      const id = url.searchParams.get('id');
+      if (id) return id;
+    } catch(e) {}
+    if (/^[a-zA-Z0-9]{15,}$/.test(val)) return val;
+    return null;
+  }
+
+  function processBarcode(val) {
+    if (!val) return;
+    const id = extractOrderId(val);
+    if (!id) {
+      hint.textContent = '無法識別，請重新掃描';
+      hint.style.color = '#ff3b30';
+      input.value = '';
+      setTimeout(() => { hint.textContent = ''; hint.style.color = '#0066cc'; }, 2000);
+      return;
+    }
+    hint.textContent = '開啟中…';
+    input.value = '';
+    window.location.href = 'order-detail.html?id=' + encodeURIComponent(id);
+  }
+
+  window.addEventListener('load', () => input.focus());
+})();
 </script>
 </body>
 </html>
