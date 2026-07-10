@@ -91,12 +91,12 @@
         <div id="legend-category" style="margin-top:.85rem;font-size:.78rem;display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem .9rem"></div>
       </div>
       <div class="card" style="text-align:center">
-        <h3 style="font-weight:700;margin-bottom:1rem;font-size:.95rem">各商品販售量</h3>
+        <h3 style="font-weight:700;margin-bottom:1rem;font-size:.95rem">各類型販售量</h3>
         <svg id="pie-sales" viewBox="0 0 200 200" style="width:200px;height:200px;display:block;margin:0 auto"></svg>
         <div id="legend-sales" style="margin-top:.85rem;font-size:.78rem;display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem .9rem"></div>
       </div>
       <div class="card" style="text-align:center">
-        <h3 style="font-weight:700;margin-bottom:1rem;font-size:.95rem">各商品庫存量</h3>
+        <h3 style="font-weight:700;margin-bottom:1rem;font-size:.95rem">各類型庫存量</h3>
         <svg id="pie-stock" viewBox="0 0 200 200" style="width:200px;height:200px;display:block;margin:0 auto"></svg>
         <div id="legend-stock" style="margin-top:.85rem;font-size:.78rem;display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem .9rem"></div>
       </div>
@@ -278,27 +278,30 @@ async function loadDashboard() {
     Object.entries(catMap).map(([label, value]) => ({ label, value }))
       .sort((a, b) => b.value - a.value));
 
-  // 圓餅圖 2：各商品販售量（從訂單統計）
-  const salesMap = {};
+  // 圓餅圖 2：各類型販售量（從訂單統計，依商品分類加總）
+  const salesCatMap = {};
+  const productCatMap = {};
+  products.forEach(p => { productCatMap[p.name] = p.category || '未分類'; });
   orders.filter(o => o.status !== 'cancelled').forEach(o => {
     (o.items || []).forEach(item => {
-      const name = item.name || '未知';
-      salesMap[name] = (salesMap[name] || 0) + (Number(item.qty) || 1);
+      const cat = productCatMap[item.name] || '未分類';
+      salesCatMap[cat] = (salesCatMap[cat] || 0) + (Number(item.qty) || 1);
     });
   });
-  const salesData = Object.entries(salesMap)
-    .map(([label, value]) => ({ label, value }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 7);
-  drawPie('pie-sales', 'legend-sales', salesData);
+  drawPie('pie-sales', 'legend-sales',
+    Object.entries(salesCatMap).map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value));
 
-  // 圓餅圖 3：各商品庫存量
-  const stockData = products
-    .map(p => ({ label: p.name || '未知', value: getEffectiveStock(p) }))
-    .filter(d => d.value > 0)
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 8);
-  drawPie('pie-stock', 'legend-stock', stockData);
+  // 圓餅圖 3：各類型庫存量（依商品分類加總庫存）
+  const stockCatMap = {};
+  products.forEach(p => {
+    const cat = p.category || '未分類';
+    stockCatMap[cat] = (stockCatMap[cat] || 0) + getEffectiveStock(p);
+  });
+  drawPie('pie-stock', 'legend-stock',
+    Object.entries(stockCatMap).map(([label, value]) => ({ label, value }))
+      .filter(d => d.value > 0)
+      .sort((a, b) => b.value - a.value));
 }
 
 function doLogout() {
