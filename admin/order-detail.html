@@ -83,11 +83,11 @@ body{background:var(--bg);min-height:100vh}
 
     <!-- 確認付款 / 已付款 -->
     <div id="action-pending" style="display:none">
-      <button class="pay-btn" onclick="confirmPayment()" id="btn-pay">✅ &nbsp;確認付款</button>
+      <button class="pay-btn" onclick="confirmPayment()" id="btn-pay">✅ &nbsp;確認取貨付款</button>
     </div>
     <div id="action-paid" class="paid-badge" style="display:none">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,10 8,14 16,6"/></svg>
-      已確認付款
+      已取貨付款
     </div>
     <div id="action-cancelled" style="display:none;text-align:center;color:var(--muted);padding:1rem;font-size:.9rem">此訂單已取消</div>
 
@@ -167,9 +167,9 @@ function renderOrder(o) {
 
   // 狀態 header
   const statusMap = {
-    pending:   ['待付款', 'status-pending'],
-    paid:      ['已付款', 'status-paid'],
-    cancelled: ['已取消', 'status-cancelled']
+    pending:   ['待取貨付款', 'status-pending'],
+    paid:      ['已取貨付款', 'status-paid'],
+    cancelled: ['取消訂單',   'status-cancelled']
   };
   const [label, cls] = statusMap[o.status] || ['未知', 'status-cancelled'];
   document.getElementById('header-status').innerHTML =

@@ -63,11 +63,9 @@
       <input id="search" type="text" class="form-input" placeholder="搜尋訂單編號/收件人..." style="width:200px" oninput="renderTable()">
       <select id="filter-status" class="form-select" style="width:auto" onchange="renderTable()">
         <option value="">所有狀態</option>
-        <option value="pending">待處理</option>
-        <option value="processing">備貨中</option>
-        <option value="shipped">已出貨</option>
-        <option value="completed">已完成</option>
-        <option value="cancelled">已取消</option>
+        <option value="pending">待取貨付款</option>
+        <option value="paid">已取貨付款</option>
+        <option value="cancelled">取消訂單</option>
       </select>
       <div style="display:flex;align-items:center;gap:.4rem">
         <input id="filter-date-from" type="date" class="form-input" style="width:140px" onchange="renderTable()" title="起始日期">
@@ -84,9 +82,9 @@
           <thead>
             <tr>
               <th>訂單編號</th>
-              <th>收件人</th>
-              <th>取貨方式</th>
-              <th>付款</th>
+              <th>廠商</th>
+              <th>姓名</th>
+              <th>員工編號</th>
               <th>金額</th>
               <th>狀態</th>
               <th>時間</th>
@@ -109,10 +107,8 @@
     <div style="margin-top:1.25rem">
       <label class="form-label">更新訂單狀態</label>
       <div style="display:flex;gap:.75rem;margin-top:.5rem;flex-wrap:wrap">
-        <button class="btn btn-sm btn-outline" onclick="updateStatus('pending')">待處理</button>
-        <button class="btn btn-sm" style="background:#dbeafe;color:#1d4ed8;border:none;border-radius:8px;padding:.35rem .8rem;font-size:.8rem;font-weight:600;cursor:pointer" onclick="updateStatus('processing')">備貨中</button>
-        <button class="btn btn-sm" style="background:#e0f2fe;color:#0369a1;border:none;border-radius:8px;padding:.35rem .8rem;font-size:.8rem;font-weight:600;cursor:pointer" onclick="updateStatus('shipped')">已出貨</button>
-        <button class="btn btn-sm" style="background:#dcfce7;color:#15803d;border:none;border-radius:8px;padding:.35rem .8rem;font-size:.8rem;font-weight:600;cursor:pointer" onclick="updateStatus('completed')">已完成</button>
+        <button class="btn btn-sm btn-outline" onclick="updateStatus('pending')">待取貨付款</button>
+        <button class="btn btn-sm" style="background:#dcfce7;color:#15803d;border:none;border-radius:8px;padding:.35rem .8rem;font-size:.8rem;font-weight:600;cursor:pointer" onclick="updateStatus('paid')">已取貨付款</button>
         <button class="btn btn-sm btn-danger" style="font-size:.8rem;padding:.35rem .8rem" onclick="updateStatus('cancelled')">取消訂單</button>
       </div>
     </div>
@@ -144,9 +140,8 @@ firebase.initializeApp(firebaseConfig);
 </script>
   <script src="../js/app-helpers.js"></script>
 <script>
-const STATUS_BADGE = { pending:'badge-warn', processing:'badge-info', shipped:'badge-info', completed:'badge-success', cancelled:'badge-danger' };
-const STATUS_LABEL = { pending:'待處理', processing:'備貨中', shipped:'已出貨', completed:'已完成', cancelled:'已取消' };
-const PAY_LABEL = { cod:'貨到付款', transfer:'銀行轉帳', credit:'信用卡' };
+const STATUS_BADGE = { pending:'badge-warn', paid:'badge-success', cancelled:'badge-danger' };
+const STATUS_LABEL = { pending:'待取貨付款', paid:'已取貨付款', cancelled:'取消訂單' };
 
 let orders = [];
 let currentOrderId = null;
@@ -187,7 +182,10 @@ function renderTable() {
 
   const filtered = orders.filter(o => {
     if (st && o.status !== st) return false;
-    if (q && !o.id.toLowerCase().includes(q) && !(o.receiver?.name||'').toLowerCase().includes(q)) return false;
+    if (q && !o.id.toLowerCase().includes(q) &&
+        !(o.empName||'').toLowerCase().includes(q) &&
+        !(o.empId||'').toLowerCase().includes(q) &&
+        !(o.empVendor||'').toLowerCase().includes(q)) return false;
     if (fromTs || toTs) {
       const ts = o.createdAt?.seconds ? o.createdAt.seconds * 1000 : (o.createdAt?.toDate?.()?.getTime?.() ?? 0);
       if (fromTs && ts < fromTs) return false;
@@ -199,19 +197,9 @@ function renderTable() {
   tbody.innerHTML = filtered.length ? filtered.map(o => `
     <tr>
       <td style="font-family:monospace;font-size:.85rem">#${escapeHtml(o.id.slice(0,8).toUpperCase())}</td>
-      <td>
-        <div style="font-weight:600">${escapeHtml(o.receiver?.name||'—')}</div>
-        <div style="font-size:.78rem;color:var(--muted)">${escapeHtml(o.receiver?.phone||'')}</div>
-      </td>
-      <td style="font-size:.85rem">${escapeHtml(o.shipping?.method||'—')}</td>
-      <td style="font-size:.85rem">
-        <div>${escapeHtml(PAY_LABEL[o.payment?.method]||o.payment?.method||'—')}</div>
-        ${o.payment?.method === 'transfer' ? o.payment?.transferCode
-          ? `<div style="font-size:.75rem;color:#065f46;margin-top:.2rem;font-weight:600">✅ 後五碼：${escapeHtml(o.payment.transferCode)}</div>
-             <div style="font-size:.72rem;color:var(--muted)">${formatDate(o.payment.transferAt)}</div>`
-          : `<div style="font-size:.75rem;color:#b45309;margin-top:.2rem">⏳ 待匯款登錄</div>`
-        : ''}
-      </td>
+      <td style="font-size:.85rem">${escapeHtml(o.empVendor||'—')}</td>
+      <td style="font-weight:600">${escapeHtml(o.empName||'—')}</td>
+      <td style="font-size:.85rem;color:var(--muted)">${escapeHtml(o.empId||'—')}</td>
       <td style="font-weight:700">${formatPrice(o.total)}</td>
       <td><span class="badge ${STATUS_BADGE[o.status]||'badge-gray'}">${STATUS_LABEL[o.status]||escapeHtml(o.status)}</span></td>
       <td style="font-size:.78rem;color:var(--muted);white-space:nowrap">${formatDate(o.createdAt)}</td>
@@ -231,32 +219,22 @@ function openOrder(id) {
   document.getElementById('order-detail').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
       <div>
-        <div class="form-label">收件人</div>
-        <div>${escapeHtml(o.receiver?.name||'')} / ${escapeHtml(o.receiver?.phone||'')}</div>
-        <div style="font-size:.85rem;color:var(--muted)">${escapeHtml(o.receiver?.email||'')}</div>
+        <div class="form-label">廠商</div>
+        <div>${escapeHtml(o.empVendor||'—')}</div>
       </div>
       <div>
-        <div class="form-label">取貨方式</div>
-        <div>${escapeHtml(o.shipping?.method||'—')}</div>
-        <div style="font-size:.85rem;color:var(--muted)">${escapeHtml(o.shipping?.address||'')}</div>
+        <div class="form-label">姓名</div>
+        <div style="font-weight:600">${escapeHtml(o.empName||'—')}</div>
       </div>
       <div>
-        <div class="form-label">付款方式</div>
-        <div>${escapeHtml(PAY_LABEL[o.payment?.method]||o.payment?.method||'—')}</div>
-        ${o.payment?.method === 'transfer' ? `
-          <div style="margin-top:.35rem;font-size:.82rem">
-            ${o.payment?.transferCode
-              ? `<span style="color:#065f46;font-weight:600">✅ 後五碼：${escapeHtml(o.payment.transferCode)}</span>
-                 <span style="color:var(--muted);margin-left:.4rem">${formatDate(o.payment.transferAt)}</span>`
-              : `<span style="color:var(--muted)">⏳ 買家尚未登錄後五碼</span>`}
-          </div>` : ''}
+        <div class="form-label">員工編號</div>
+        <div>${escapeHtml(o.empId||'—')}</div>
       </div>
       <div>
         <div class="form-label">目前狀態</div>
         <span class="badge ${STATUS_BADGE[o.status]||'badge-gray'}">${STATUS_LABEL[o.status]||escapeHtml(o.status)}</span>
       </div>
     </div>
-    ${o.note ? `<div class="alert alert-info" style="margin-bottom:1rem">備註：${escapeHtml(o.note)}</div>` : ''}
     <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1rem">
       <table style="width:100%">
         <thead><tr><th>商品</th><th>數量</th><th>小計</th></tr></thead>
@@ -266,9 +244,6 @@ function openOrder(id) {
       </table>
     </div>
     <div class="summary-box">
-      <div class="summary-row"><span>商品小計</span><span>${formatPrice(o.subtotal)}</span></div>
-      <div class="summary-row"><span>運費</span><span>${formatPrice(o.shipping?.fee||0)}</span></div>
-      ${o.coupon ? `<div class="summary-row"><span>折扣（${escapeHtml(o.coupon.code)}）</span><span style="color:var(--success)">-${formatPrice(o.coupon.discount)}</span></div>` : ''}
       <div class="summary-row total"><span>合計</span><span>${formatPrice(o.total)}</span></div>
     </div>`;
   document.getElementById('order-modal').style.display = 'flex';
