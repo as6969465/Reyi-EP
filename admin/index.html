@@ -206,7 +206,8 @@ auth.onAuthStateChanged(async user => {
   const adminDoc = await db.collection('admins').doc(user.uid).get();
   if (!adminDoc.exists) return window.location.href = '../shop.html';
   applyStoreName(' — 管理後台');
-  document.getElementById('admin-name').textContent = user.displayName || user.email;
+  const email = user.email || '';
+  document.getElementById('admin-name').textContent = user.displayName || email.split('@')[0];
   loadDashboard();
 });
 
