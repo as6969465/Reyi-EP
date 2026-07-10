@@ -36,6 +36,7 @@
     <nav class="s-nav">
       <a href="shop.html">繼續購物</a>
       <a href="cart.html">購物車 <span class="s-cart-count" id="cart-count">0</span></a>
+      <a href="admin/index.html" id="nav-admin" style="display:none;background:rgba(0,102,204,.1);color:#0066cc;border-radius:8px;padding:.35rem .75rem;font-weight:600;font-size:.82rem">⚙️ 後台管理</a>
       <button onclick="doLogout()" id="nav-logout">登出</button>
     </nav>
   </div>
@@ -118,11 +119,15 @@ auth.onAuthStateChanged(async user => {
   applyStoreName('');
   currentUser = user;
   loadCartCount();
-  const doc = await db.collection('users').doc(user.uid).get();
-  const data = doc.exists ? doc.data() : {};
+  const [userDoc, adminDoc] = await Promise.all([
+    db.collection('users').doc(user.uid).get(),
+    db.collection('admins').doc(user.uid).get().catch(() => null)
+  ]);
+  const data = userDoc.exists ? userDoc.data() : {};
   document.getElementById('member-name').textContent = data.name || user.displayName || '會員';
   document.getElementById('member-email').textContent = data.email || user.email || '';
   document.getElementById('avatar').textContent = (data.name || user.displayName || '?')[0].toUpperCase();
+  document.getElementById('nav-admin').style.display = adminDoc?.exists ? '' : 'none';
   loadOrders();
 });
 

@@ -315,6 +315,7 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <span id="nav-username">會員</span>
       </a>
+      <a href="admin/index.html" id="nav-admin" style="display:none;background:rgba(0,102,204,.1);color:#0066cc;border-radius:8px;padding:.35rem .75rem;font-weight:600;font-size:.82rem">⚙️ 後台管理</a>
       <button onclick="doLogout()" id="nav-logout" style="display:none">登出</button>
       <a href="index.html" id="nav-login" class="btn-login">登入 / 註冊</a>
     </div>
@@ -391,7 +392,7 @@ let currentPage = 1;
 const pageSize = 12;
 
 // ── Auth 狀態 ─────────────────────────────────────────────
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(async user => {
   document.body.style.visibility = 'visible';
   setCartUser(user ? user.uid : null);
   if (user) {
@@ -400,10 +401,13 @@ auth.onAuthStateChanged(user => {
     document.getElementById('nav-member').style.display = 'flex';
     document.getElementById('nav-logout').style.display = '';
     document.getElementById('nav-login').style.display = 'none';
+    const adminDoc = await db.collection('admins').doc(user.uid).get().catch(() => null);
+    document.getElementById('nav-admin').style.display = adminDoc?.exists ? '' : 'none';
   } else {
     document.getElementById('nav-member').style.display = 'none';
     document.getElementById('nav-logout').style.display = 'none';
     document.getElementById('nav-login').style.display = '';
+    document.getElementById('nav-admin').style.display = 'none';
   }
   loadCartCount();
   applyStoreName('');

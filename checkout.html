@@ -31,6 +31,7 @@
     <a href="shop.html" class="s-logo store-name-el"></a>
     <nav class="s-nav">
       <a href="cart.html">← 返回購物車</a>
+      <a href="admin/index.html" id="nav-admin" style="display:none;background:rgba(0,102,204,.1);color:#0066cc;border-radius:8px;padding:.35rem .75rem;font-weight:600;font-size:.82rem">⚙️ 後台管理</a>
     </nav>
   </div>
 </header>
@@ -108,6 +109,8 @@ auth.onAuthStateChanged(async user => {
   currentUser = user;
   setCartUser(user.uid);
   applyStoreName('');
+  const adminDoc = await db.collection('admins').doc(user.uid).get().catch(() => null);
+  document.getElementById('nav-admin').style.display = adminDoc?.exists ? '' : 'none';
   if (!getCart().length) return window.location.href = 'cart.html';
   renderItems();
   loadEmpInfo();
