@@ -87,6 +87,7 @@
         <input id="filter-date-to" type="date" class="form-input" style="width:140px" onchange="renderTable()" title="結束日期">
         <button class="btn btn-outline btn-sm" onclick="clearDateFilter()">清除</button>
       </div>
+      <button class="btn btn-primary btn-sm" onclick="exportOrders()">📊 匯出訂單明細</button>
     </div>
   </div>
   <div style="padding:1.5rem">
@@ -152,6 +153,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 </script>
   <script src="../js/app-helpers.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 const STATUS_BADGE = { pending:'badge-warn', paid:'badge-success', cancelled:'badge-danger' };
 const STATUS_LABEL = { pending:'待取貨付款', paid:'已取貨付款', cancelled:'取消訂單' };
@@ -185,7 +187,7 @@ function clearDateFilter() {
   renderTable();
 }
 
-function renderTable() {
+function getFilteredOrders() {
   const q    = document.getElementById('search').value.toLowerCase();
   const st   = document.getElementById('filter-status').value;
   const from = document.getElementById('filter-date-from').value;
@@ -193,7 +195,7 @@ function renderTable() {
   const fromTs = from ? new Date(from).getTime() : null;
   const toTs   = to   ? new Date(to + 'T23:59:59').getTime() : null;
 
-  const filtered = orders.filter(o => {
+  return orders.filter(o => {
     if (st && o.status !== st) return false;
     if (q && !o.id.toLowerCase().includes(q) &&
         !(o.empName||'').toLowerCase().includes(q) &&
@@ -206,6 +208,10 @@ function renderTable() {
     }
     return true;
   });
+}
+
+function renderTable() {
+  const filtered = getFilteredOrders();
   const tbody = document.getElementById('order-tbody');
   tbody.innerHTML = filtered.length ? filtered.map(o => `
     <tr>
@@ -284,6 +290,43 @@ async function deleteOrder(id) {
 }
 
 function closeModal() { document.getElementById('order-modal').style.display = 'none'; }
+
+// ── 匯出訂單明細 (.xlsx) ──────────────────────────────────
+function exportOrders() {
+  const filtered = getFilteredOrders();
+  if (!filtered.length) { alert('目前沒有符合條件的訂單可匯出'); return; }
+
+  const rows = [];
+  filtered.forEach(o => {
+    const items = o.items && o.items.length ? o.items : [{ name:'', qty:'', price:'' }];
+    items.forEach((it, idx) => {
+      rows.push({
+        '訂單編號': idx === 0 ? o.id.slice(0,8).toUpperCase() : '',
+        '廠商': idx === 0 ? (o.empVendor||'') : '',
+        '姓名': idx === 0 ? (o.empName||'') : '',
+        '員工編號': idx === 0 ? (o.empId||'') : '',
+        '商品名稱': it.name || '',
+        '數量': it.qty || '',
+        '單價': it.price != null ? it.price : '',
+        '小計': (it.price != null && it.qty != null) ? it.price * it.qty : '',
+        '訂單合計': idx === 0 ? o.total : '',
+        '狀態': idx === 0 ? (STATUS_LABEL[o.status]||o.status) : '',
+        '下單時間': idx === 0 ? formatDate(o.createdAt) : ''
+      });
+    });
+  });
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [
+    { wch:12 },{ wch:12 },{ wch:10 },{ wch:12 },
+    { wch:24 },{ wch:6 },{ wch:10 },{ wch:10 },
+    { wch:10 },{ wch:12 },{ wch:18 }
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '訂單明細');
+  const stamp = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `訂單明細_${stamp}.xlsx`);
+}
 function doLogout() { auth.signOut().then(() => window.location.href = '../index.html'); }
 
 // ── 條碼槍掃碼 ────────────────────────────────────────────
