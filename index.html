@@ -87,43 +87,45 @@ async function doLogin() {
   const email = empId + '@reyi-ep.local';
   const password = 'Reyi@' + empId;
   try {
-    let result;
-    try {
-      result = await auth.signInWithEmailAndPassword(email, password);
-    } catch (e) {
-      if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
-        // 帳號不存在，先建立再驗證員工身份
-        result = await auth.createUserWithEmailAndPassword(email, password);
-        const empCheck = await db.collection('employees').doc(empId).get();
-        if (!empCheck.exists || empCheck.data().isActive === false) {
-          await result.user.delete();
-          await auth.signOut();
-          showAlert(empCheck.exists ? '您的帳號已停用，請聯絡管理員' : '員工編號不存在，請聯絡管理員');
-          btn.disabled = false; btn.textContent = '登入';
-          return;
-        }
-        await result.user.updateProfile({ displayName: empCheck.data().name || empId });
-        await db.collection('employees').doc(empId).update({ uid: result.user.uid }).catch(() => {});
-      } else {
-        throw e;
-      }
-    }
-    // 已有帳號：驗證員工狀態
+    // 先查 Firestore 確認員工存在
     const empDoc = await db.collection('employees').doc(empId).get();
-    if (!empDoc.exists || empDoc.data().isActive === false) {
-      await auth.signOut();
-      showAlert(empDoc.exists ? '您的帳號已停用，請聯絡管理員' : '員工編號不存在，請聯絡管理員');
+    if (!empDoc.exists) {
+      showAlert('員工編號不存在，請聯絡管理員');
       btn.disabled = false; btn.textContent = '登入';
       return;
     }
-    // 記錄登入
+    if (empDoc.data().isActive === false) {
+      showAlert('您的帳號已停用，請聯絡管理員');
+      btn.disabled = false; btn.textContent = '登入';
+      return;
+    }
+
+    let result;
     try {
-      await db.collection('users').doc(result.user.uid).set({
-        loginCount: firebase.firestore.FieldValue.increment(1),
-        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-    } catch(e) {}
-  } catch (e) {
+      result = await auth.signInWithEmailAndPassword(email, password);
+    } catch(signInErr) {
+      // 帳號尚未建立，建立 Firebase Auth 帳號
+      try {
+        result = await auth.createUserWithEmailAndPassword(email, password);
+        await result.user.updateProfile({ displayName: empDoc.data().name || empId });
+        await db.collection('employees').doc(empId).update({ uid: result.user.uid }).catch(() => {});
+      } catch(createErr) {
+        if (createErr.code === 'auth/email-already-in-use') {
+          // 帳號已存在但剛才 signIn 失敗（Firebase 統一錯誤碼），重試
+          result = await auth.signInWithEmailAndPassword(email, password);
+        } else {
+          throw createErr;
+        }
+      }
+    }
+
+    // 記錄登入
+    await db.collection('users').doc(result.user.uid).set({
+      loginCount: firebase.firestore.FieldValue.increment(1),
+      lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }).catch(() => {});
+
+  } catch(e) {
     const msg = e.code === 'auth/too-many-requests' ? '嘗試次數過多，請稍後再試' : '登入失敗，請稍後再試';
     showAlert(msg);
     btn.disabled = false; btn.textContent = '登入';
