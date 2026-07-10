@@ -30,6 +30,7 @@
     .stat-value { font-size:1.75rem; font-weight:800; margin:.4rem 0; }
     .stat-sub { font-size:.8rem; color:var(--muted); }
     @media(max-width:900px){ .stat-grid{grid-template-columns:repeat(2,1fr);} .sidebar{display:none;} }
+    @media(max-width:768px){ .main-header{padding:.7rem 1rem;} }
   </style>
   <script src="../js/store-name-init.js"></script>
 </head>
@@ -118,8 +119,8 @@
         <input id="new-banner" type="text" class="form-input" placeholder="輸入公告文字，例：夏季特賣最低 5 折起！">
         <button class="btn btn-outline" onclick="addBanner()">新增</button>
       </div>
-      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.25rem">
-        <label class="form-label" style="white-space:nowrap;margin:0">切換秒數（多條公告自動輪播）</label>
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.25rem;flex-wrap:wrap">
+        <label class="form-label" style="margin:0">切換秒數（多條公告自動輪播）</label>
         <input id="banner-interval" type="number" class="form-input" min="1" max="60" value="5" style="width:90px">
         <span style="font-size:.84rem;color:var(--muted)">秒</span>
       </div>

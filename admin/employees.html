@@ -25,6 +25,12 @@
     .main { flex:1; overflow-y:auto; background:var(--bg); min-width:0; }
     .main-header { background:rgba(255,255,255,.88); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px); border-bottom:1px solid rgba(210,210,215,.6); padding:.85rem 1.5rem; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; }
     @media(max-width:900px){ .sidebar{display:none;} }
+    @media(max-width:768px){
+      .main-header{padding:.7rem 1rem;}
+      #add-emp-grid{grid-template-columns:1fr 1fr!important;}
+      #add-emp-grid>button{grid-column:1 / -1;width:100%;}
+      #search-emp{width:100%!important;}
+    }
     .emp-status-active { color:#34c759; font-weight:600; font-size:.82rem; }
     .emp-status-disabled { color:#ff3b30; font-weight:600; font-size:.82rem; }
     .csv-hint { font-size:.78rem; color:var(--muted); margin-top:.4rem; }
@@ -63,7 +69,7 @@
     <!-- 新增員工 -->
     <div class="card">
       <h2 style="font-size:1rem;font-weight:700;margin-bottom:1rem">新增員工帳號</h2>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:.75rem;align-items:end">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:.75rem;align-items:end" id="add-emp-grid">
         <div>
           <label class="form-label">員工編號 <span style="color:var(--danger)">*</span></label>
           <input id="new-emp-id" type="text" class="form-input" placeholder="例：A12345">

@@ -30,7 +30,17 @@
     .stat-value { font-size:1.75rem; font-weight:800; margin:.4rem 0; }
     .stat-sub { font-size:.8rem; color:var(--muted); }
     @media(max-width:900px){ .stat-grid{grid-template-columns:repeat(2,1fr);} .sidebar{display:none;} }
-  </style>
+    @media(max-width:768px){
+      #charts-row{grid-template-columns:1fr!important;gap:1rem!important;}
+      #bottom-row{grid-template-columns:1fr!important;gap:1rem!important;}
+      #charts-row svg{width:100%!important;max-width:220px!important;height:auto!important;}
+      .main>div[style*="padding"]{padding:1rem!important;}
+    }
+    @media(max-width:480px){
+      .stat-grid{grid-template-columns:repeat(2,1fr)!important;}
+      .stat-value{font-size:1.4rem!important;}
+    }
+</style>
   <script src="../js/store-name-init.js"></script>
 </head>
 <body>
@@ -102,7 +112,7 @@
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 380px;gap:1.5rem">
+    <div style="display:grid;grid-template-columns:1fr 380px;gap:1.5rem" id="bottom-row">
       <!-- 最新訂單 -->
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
