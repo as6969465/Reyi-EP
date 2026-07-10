@@ -446,10 +446,16 @@ async function loadBanners() {
     const items = snap.exists ? (snap.data().items || []) : [];
     const interval = snap.exists ? (snap.data().rotateInterval || 5) : 5;
     if (!items.length) return;
+    // 頂部橫幅
     const bar = document.getElementById('announce-bar');
     bar.innerHTML = `<span class="announce-text">${escapeHtml(items[0].text)}</span>`;
     bar.style.display = 'block';
     if (items.length > 1) startBannerRotation(items, interval);
+    // 內容區公告卡片
+    const area = document.getElementById('banner-area');
+    area.innerHTML = items.map(b =>
+      `<div class="banner-msg">📢 <span>${escapeHtml(b.text)}</span></div>`
+    ).join('');
   } catch(e) {}
 }
 
