@@ -35,6 +35,7 @@
 </head>
 <body>
 
+<div class="announce-bar" id="announce-bar" style="display:none"></div>
 <header class="s-header">
   <div class="s-header-inner">
     <a href="shop.html" class="s-logo store-name-el"></a>
@@ -116,6 +117,8 @@ let _bankAccount = null;
 db.collection('settings').doc('general').get().then(snap => {
   if (snap.exists && snap.data().bankAccount) _bankAccount = snap.data().bankAccount;
 }).catch(() => {});
+
+loadBanners();
 
 auth.onAuthStateChanged(async user => {
   document.body.style.visibility = 'visible';
@@ -221,6 +224,39 @@ function closeOrderModal() { document.getElementById('order-modal').style.displa
 
 function doLogout() {
   auth.signOut().then(() => window.location.href = 'index.html');
+}
+
+// ── 公告橫幅 ─────────────────────────────────────────────
+let _bannerTimer = null;
+async function loadBanners() {
+  try {
+    const snap = await db.collection('settings').doc('banners').get();
+    const items = snap.exists ? (snap.data().items || []) : [];
+    const interval = snap.exists ? (snap.data().rotateInterval || 5) : 5;
+    if (!items.length) return;
+    const bar = document.getElementById('announce-bar');
+    bar.innerHTML = `<span class="announce-text">${escapeHtml(items[0].text)}</span>`;
+    bar.style.display = 'block';
+    if (items.length > 1) startBannerRotation(items, interval);
+  } catch(e) {}
+}
+function startBannerRotation(items, intervalSec) {
+  if (_bannerTimer) clearInterval(_bannerTimer);
+  let idx = 0;
+  _bannerTimer = setInterval(() => {
+    const el = document.querySelector('.announce-text');
+    if (!el) return;
+    el.classList.add('fade-out');
+    setTimeout(() => {
+      idx = (idx + 1) % items.length;
+      el.textContent = items[idx].text;
+      el.classList.remove('fade-out');
+      el.classList.add('fade-in');
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        el.classList.remove('fade-in');
+      }));
+    }, 400);
+  }, intervalSec * 1000);
 }
 </script>
 </body>
