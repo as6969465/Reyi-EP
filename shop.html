@@ -71,9 +71,6 @@
     /* ── Container ── */
     .container { max-width: 1280px; margin: auto; padding: 1rem 2rem 2rem; }
 
-    /* ── Banner ── */
-    #banner-area { margin-bottom: 1.25rem; }
-    .banner-msg { background: #fff8ed; border: 1px solid #fddcab; color: #7c4500; border-radius: 12px; padding: .65rem 1rem; font-size: .84rem; display: flex; align-items: center; gap: .5rem; }
 
     /* ── Sort Bar ── */
     .sort-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: .75rem; }
@@ -334,8 +331,6 @@
 
 <!-- 主內容 -->
 <div class="container">
-  <!-- 公告 -->
-  <div id="banner-area"></div>
 
   <!-- 排序列 -->
   <div class="sort-bar">
@@ -454,11 +449,6 @@ async function loadBanners() {
     bar.innerHTML = `<span class="announce-text">${escapeHtml(items[0].text)}</span>`;
     bar.style.display = 'block';
     if (items.length > 1) startBannerRotation(items, interval);
-    // 內容區公告卡片
-    const area = document.getElementById('banner-area');
-    area.innerHTML = items.map(b =>
-      `<div class="banner-msg">📢 <span>${escapeHtml(b.text)}</span></div>`
-    ).join('');
   } catch(e) {}
 }
 
