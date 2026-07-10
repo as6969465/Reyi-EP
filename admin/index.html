@@ -172,6 +172,12 @@ function drawPie(svgId, legendId, data) {
     legend.innerHTML = '';
     return;
   }
+  // 單一項目時直接畫整圓
+  if (data.length === 1) {
+    svg.innerHTML = `<circle cx="100" cy="100" r="80" fill="${PALETTE[0]}" stroke="#fff" stroke-width="2"/>`;
+    legend.innerHTML = `<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><span style="width:10px;height:10px;border-radius:2px;background:${PALETTE[0]};flex-shrink:0;display:inline-block"></span><span>${escapeHtml(data[0].label)}</span><span style="color:var(--muted);margin-left:.2rem">${data[0].value}</span></div>`;
+    return;
+  }
   let angle = -Math.PI / 2;
   const cx = 100, cy = 100, r = 80;
   let paths = '';
