@@ -19,7 +19,12 @@
 .order-item-row{display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--border)}
 .order-item-row:last-child{border-bottom:none}
 .qr-wrap{background:#fff;border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:inline-block;box-shadow:0 4px 24px rgba(0,0,0,.08)}
-@media(max-width:600px){.s-header-inner{padding:.65rem 1rem}}
+@media(max-width:600px){
+  .s-header-inner{padding:.65rem 1rem}
+  .qr-wrap{padding:1rem;width:100%;box-sizing:border-box}
+  #qr-img{max-width:100%;height:auto!important;width:100%!important}
+  .container{padding-left:1rem;padding-right:1rem}
+}
   </style>
   <style>body{visibility:hidden}</style>
   <script src="js/store-name-init.js"></script>
