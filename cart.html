@@ -82,10 +82,12 @@ auth.onAuthStateChanged(async user => {
   document.body.style.visibility = 'visible';
   if (user) {
     setCartUser(user.uid);
-    const name = user.displayName || user.email.split('@')[0];
-    document.getElementById('nav-username').textContent = name;
     document.getElementById('nav-member').style.display = '';
     document.getElementById('nav-logout').style.display = '';
+    const empId = user.email.replace('@reyi-ep.local', '').toUpperCase();
+    db.collection('employees').doc(empId).get().catch(() => null).then(d => {
+      document.getElementById('nav-username').textContent = d?.exists ? (d.data().name || empId) : (user.displayName || empId);
+    });
     document.getElementById('nav-login').style.display = 'none';
     const adminDoc = await db.collection('admins').doc(user.uid).get().catch(() => null);
     document.getElementById('nav-admin').style.display = adminDoc?.exists ? '' : 'none';

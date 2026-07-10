@@ -396,12 +396,16 @@ auth.onAuthStateChanged(async user => {
   document.body.style.visibility = 'visible';
   setCartUser(user ? user.uid : null);
   if (user) {
-    const name = user.displayName || user.email.split('@')[0];
-    document.getElementById('nav-username').textContent = name;
     document.getElementById('nav-member').style.display = 'flex';
     document.getElementById('nav-logout').style.display = '';
     document.getElementById('nav-login').style.display = 'none';
-    const adminDoc = await db.collection('admins').doc(user.uid).get().catch(() => null);
+    const empId = user.email.replace('@reyi-ep.local', '').toUpperCase();
+    const [empDoc, adminDoc] = await Promise.all([
+      db.collection('employees').doc(empId).get().catch(() => null),
+      db.collection('admins').doc(user.uid).get().catch(() => null)
+    ]);
+    const name = empDoc?.exists ? (empDoc.data().name || empId) : (user.displayName || empId);
+    document.getElementById('nav-username').textContent = name;
     document.getElementById('nav-admin').style.display = adminDoc?.exists ? '' : 'none';
   } else {
     document.getElementById('nav-member').style.display = 'none';
