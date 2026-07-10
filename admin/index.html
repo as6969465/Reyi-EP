@@ -174,24 +174,31 @@ function drawPie(svgId, legendId, data) {
   }
   // 單一項目時直接畫整圓
   if (data.length === 1) {
-    svg.innerHTML = `<circle cx="100" cy="100" r="80" fill="${PALETTE[0]}" stroke="#fff" stroke-width="2"/>`;
+    svg.innerHTML = `<circle cx="100" cy="100" r="80" fill="${PALETTE[0]}" stroke="#fff" stroke-width="2"/><text x="100" y="105" text-anchor="middle" font-size="18" font-weight="bold" fill="#fff">100%</text>`;
     legend.innerHTML = `<div style="display:flex;align-items:center;gap:.4rem"><span style="width:10px;height:10px;border-radius:2px;background:${PALETTE[0]};flex-shrink:0;display:inline-block"></span><span>${escapeHtml(data[0].label)}</span><span style="color:var(--muted)">${data[0].value}</span></div>`;
     return;
   }
   let angle = -Math.PI / 2;
-  const cx = 100, cy = 100, r = 80;
-  let paths = '';
+  const cx = 100, cy = 100, r = 80, labelR = 52;
+  let paths = '', labels = '';
   data.forEach((d, i) => {
     const sweep = (d.value / total) * 2 * Math.PI;
     const x1 = cx + r * Math.cos(angle);
     const y1 = cy + r * Math.sin(angle);
+    const midAngle = angle + sweep / 2;
     angle += sweep;
     const x2 = cx + r * Math.cos(angle);
     const y2 = cy + r * Math.sin(angle);
     const large = sweep > Math.PI ? 1 : 0;
     paths += `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large},1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${PALETTE[i % PALETTE.length]}" stroke="#fff" stroke-width="2"/>`;
+    const pct = Math.round(d.value / total * 100);
+    if (pct >= 5) {
+      const lx = (cx + labelR * Math.cos(midAngle)).toFixed(1);
+      const ly = (cy + labelR * Math.sin(midAngle) + 4).toFixed(1);
+      labels += `<text x="${lx}" y="${ly}" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">${pct}%</text>`;
+    }
   });
-  svg.innerHTML = paths;
+  svg.innerHTML = paths + labels;
   legend.innerHTML = data.map((d, i) =>
     `<div style="display:flex;align-items:center;gap:.35rem">
       <span style="width:10px;height:10px;border-radius:2px;background:${PALETTE[i%PALETTE.length]};flex-shrink:0;display:inline-block"></span>
