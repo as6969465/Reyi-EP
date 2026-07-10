@@ -87,18 +87,18 @@
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-bottom:1.5rem" id="charts-row">
       <div class="card" style="text-align:center">
         <h3 style="font-weight:700;margin-bottom:1rem;font-size:.95rem">商品類型分布</h3>
-        <svg id="pie-category" viewBox="0 0 200 200" style="width:140px;height:140px;display:block;margin:0 auto"></svg>
-        <div id="legend-category" style="margin-top:.75rem;font-size:.78rem;text-align:left;display:inline-block"></div>
+        <svg id="pie-category" viewBox="0 0 200 200" style="width:200px;height:200px;display:block;margin:0 auto"></svg>
+        <div id="legend-category" style="margin-top:.85rem;font-size:.78rem;display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem .9rem"></div>
       </div>
       <div class="card" style="text-align:center">
         <h3 style="font-weight:700;margin-bottom:1rem;font-size:.95rem">各商品販售量</h3>
-        <svg id="pie-sales" viewBox="0 0 200 200" style="width:140px;height:140px;display:block;margin:0 auto"></svg>
-        <div id="legend-sales" style="margin-top:.75rem;font-size:.78rem;text-align:left;display:inline-block"></div>
+        <svg id="pie-sales" viewBox="0 0 200 200" style="width:200px;height:200px;display:block;margin:0 auto"></svg>
+        <div id="legend-sales" style="margin-top:.85rem;font-size:.78rem;display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem .9rem"></div>
       </div>
       <div class="card" style="text-align:center">
-        <h3 style="font-weight:700;margin-bottom:1rem;font-size:.95rem">庫存狀況</h3>
-        <svg id="pie-stock" viewBox="0 0 200 200" style="width:140px;height:140px;display:block;margin:0 auto"></svg>
-        <div id="legend-stock" style="margin-top:.75rem;font-size:.78rem;text-align:left;display:inline-block"></div>
+        <h3 style="font-weight:700;margin-bottom:1rem;font-size:.95rem">各商品庫存量</h3>
+        <svg id="pie-stock" viewBox="0 0 200 200" style="width:200px;height:200px;display:block;margin:0 auto"></svg>
+        <div id="legend-stock" style="margin-top:.85rem;font-size:.78rem;display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem .9rem"></div>
       </div>
     </div>
 
@@ -175,7 +175,7 @@ function drawPie(svgId, legendId, data) {
   // 單一項目時直接畫整圓
   if (data.length === 1) {
     svg.innerHTML = `<circle cx="100" cy="100" r="80" fill="${PALETTE[0]}" stroke="#fff" stroke-width="2"/>`;
-    legend.innerHTML = `<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><span style="width:10px;height:10px;border-radius:2px;background:${PALETTE[0]};flex-shrink:0;display:inline-block"></span><span>${escapeHtml(data[0].label)}</span><span style="color:var(--muted);margin-left:.2rem">${data[0].value}</span></div>`;
+    legend.innerHTML = `<div style="display:flex;align-items:center;gap:.4rem"><span style="width:10px;height:10px;border-radius:2px;background:${PALETTE[0]};flex-shrink:0;display:inline-block"></span><span>${escapeHtml(data[0].label)}</span><span style="color:var(--muted)">${data[0].value}</span></div>`;
     return;
   }
   let angle = -Math.PI / 2;
@@ -193,10 +193,10 @@ function drawPie(svgId, legendId, data) {
   });
   svg.innerHTML = paths;
   legend.innerHTML = data.map((d, i) =>
-    `<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
+    `<div style="display:flex;align-items:center;gap:.35rem">
       <span style="width:10px;height:10px;border-radius:2px;background:${PALETTE[i%PALETTE.length]};flex-shrink:0;display:inline-block"></span>
       <span>${escapeHtml(d.label)}</span>
-      <span style="color:var(--muted);margin-left:.2rem">${d.value}</span>
+      <span style="color:var(--muted)">${d.value}</span>
     </div>`
   ).join('');
 }
@@ -292,19 +292,13 @@ async function loadDashboard() {
     .slice(0, 7);
   drawPie('pie-sales', 'legend-sales', salesData);
 
-  // 圓餅圖 3：庫存狀況（正常/低庫存/售完）
-  let stockNormal = 0, stockLow = 0, stockOut = 0;
-  products.forEach(p => {
-    const s = getEffectiveStock(p);
-    if (s <= 0) stockOut++;
-    else if (s < 10) stockLow++;
-    else stockNormal++;
-  });
-  drawPie('pie-stock', 'legend-stock', [
-    { label: '正常庫存', value: stockNormal },
-    { label: '低庫存 (<10)', value: stockLow },
-    { label: '售完', value: stockOut }
-  ].filter(d => d.value > 0));
+  // 圓餅圖 3：各商品庫存量
+  const stockData = products
+    .map(p => ({ label: p.name || '未知', value: getEffectiveStock(p) }))
+    .filter(d => d.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8);
+  drawPie('pie-stock', 'legend-stock', stockData);
 }
 
 function doLogout() {
